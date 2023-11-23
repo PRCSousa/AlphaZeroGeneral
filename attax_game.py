@@ -53,7 +53,6 @@ class Attaxx:
                                 return True
         return False
 
-
     def check_board_full(self, state):
         for row in state:
             if 0 in row:
@@ -86,10 +85,27 @@ class Attaxx:
                 return True, 2
         
         return False, 0
+    
+    def print_board(self, state):
+        state = state.astype(int)
+        # Print column coordinates
+        print("   ", end="")
+        for j in range(len(state[0])):
+            print(f"{j:2}", end=" ")
+        print("\n  +", end="")
+        for _ in range(len(state[0])):
+            print("---", end="")
+        print()
+
+        # Print rows with row coordinates
+        for i in range(len(state)):
+            print(f"{i:2}|", end=" ")
+            for j in range(len(state[0])):
+                print(f"{str(state[i][j]):2}", end=" ")
+            print()
 
 attaxx_game = Attaxx([5, 5])
 state = attaxx_game.get_initial_state()
-print(state)
 player = 1
 
 game = True
@@ -97,7 +113,7 @@ game = True
 while game:
 
     print(f"Player {player} to move")
-    print(state)
+    attaxx_game.print_board(state)
 
 
     if attaxx_game.check_available_moves(state, player):
@@ -108,7 +124,7 @@ while game:
             player = - player
             win, winner = attaxx_game.check_win_and_over(state)
             if win:
-                print(state)
+                attaxx_game.print_board(state)
                 print(f"player {winner} wins")
                 exit()
     else:
