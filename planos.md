@@ -2,12 +2,10 @@
 
 ## Week 1 / 2
 
-Fazer implementação do Go e do Attax (2 semanas perhaps)
-
 Ver o vídeo fixe todo do rapaz.
 
-Go: https://github.com/eagleflo/goban/blob/master/go.py
-Attax: idk man temos de fazer  o repo da B parece promissor
+☑ Go
+☑ Attax
 
 Começar a pensar no AlphaZero
 
