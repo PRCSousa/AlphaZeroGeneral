@@ -73,7 +73,6 @@ class Group:
     def add_piece(self, piece):
         self.pieces.append(piece)
         piece.group = self
-        self.liberties = self.search_liberties(self.player, self.state)
 
     def search_liberties(self, player, state):
         # print("SEARCHING LIBERTIES\n")
@@ -83,12 +82,15 @@ class Group:
             # print(piece)
             # print(piece.neighbors)
             for neighbor in piece.neighbors:
-                print(neighbor)
+
+                # print("CHECKING " +str(neighbor))
+                # print(state[neighbor[0]][neighbor[1]])
                 if state[neighbor[0]][neighbor[1]] == 0:
-                    print("LIBERTY FOUND at " + str(neighbor)) # ERROR HERE SOME LIBERTIES ARE NOT ADDED
+
+                    # print("LIBERTY FOUND at " + str(neighbor))
                     liberties.append(neighbor)
-        print("LIBERTIES: " + str(liberties))
-        return liberties
+        # print("LIBERTIES: " + str(liberties))
+        return set(liberties)
     
     def merge_group(self, group):
         self.pieces += group.pieces
@@ -116,21 +118,38 @@ class Go:
                 board[i].append(0)
         return board
     
+    def put_piece(self, state, action, piece: Piece):
+        state[action[0]][action[1]] = piece
+        piece.group.liberties = piece.group.search_liberties(piece.player, state)
+        return state
+
     def get_next_state(self, state, action, player):
         next_state = state.copy()
-        print("ACTION: " + str(action))
+        # print("ACTION: " + str(action))
         piece = Piece(action, player, state, self.args)
-        print("NEIGHBOURS: " + str(piece.neighbors))
+        # print("NEIGHBOURS: " + str(piece.neighbors))
+        # print("PLAYER: " + str(piece.player))
+        next_state = self.put_piece(next_state, action, piece)
         print("GROUP PIECES: " + str(piece.group.pieces))
         print("GROUP LIBERTIES: " + str(piece.group.liberties))
-        print("PLAYER: " + str(piece.player))
-        next_state[action[0]][action[1]] = piece
+
         return next_state
 
     def print_board(self, state):
+        # Print column coordinates
+        print("   ", end="")
+        for j in range(len(state[0])):
+            print(f"{j:2}", end=" ")
+        print("\n  +", end="")
+        for _ in range(len(state[0])):
+            print("---", end="")
+        print()
+
+        # Print rows with row coordinates
         for i in range(len(state)):
-            for j in range(len(state[1])):
-                print(str(state[i][j]), end=" ")
+            print(f"{i:2}|", end=" ")
+            for j in range(len(state[0])):
+                print(f"{str(state[i][j]):2}", end=" ")
             print()
 
     def change_player(self, player):
@@ -154,11 +173,11 @@ state = go.get_initial_state()
 
 
 while True:
+    go.print_board(state)
     action = input("Input move (x,y): \n")
 
     action = action.split(",")
     action = (int(action[0]), int(action[1]))
     state = go.get_next_state(state, action, go.player)
-    go.print_board(state)
 
     go.player = go.change_player(go.player)
