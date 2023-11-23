@@ -1,8 +1,6 @@
 import numpy as np
 from copy import deepcopy
 
-args = [9,9]
-
 class Piece:
     def __init__(self, action, player, state, args) -> None:
         self.args = args
@@ -128,18 +126,12 @@ class Go:
         state[action[0]][action[1]] = piece # temporary for checking
         piece.group.liberties = piece.group.search_liberties(piece.player, state) # update liberties4,4
         # if it doesn't capture antything, remove piece and print suicide
-        if len(piece.group.liberties) != 0:
-            for neighbor in piece.neighbors:
-                if state[neighbor[0]][neighbor[1]] != 0:
-                    state[neighbor[0]][neighbor[1]].group.liberties = state[neighbor[0]][neighbor[1]].group.search_liberties(state[neighbor[0]][neighbor[1]], state)
-                    if state[neighbor[0]][neighbor[1]].player != piece.player:
-                        if len(state[neighbor[0]][neighbor[1]].group.liberties) == 0:
-                            state[neighbor[0]][neighbor[1]].group.capture(state)
-            go.player = go.change_player()
-        else:
-            state[piece.action[0]][piece.action[1]] = 0
-            piece.group = None
-            print("Suicide is an invalid move")
+        for neighbor in piece.neighbors:
+            if state[neighbor[0]][neighbor[1]] != 0:
+                state[neighbor[0]][neighbor[1]].group.liberties = state[neighbor[0]][neighbor[1]].group.search_liberties(state[neighbor[0]][neighbor[1]], state)
+                if state[neighbor[0]][neighbor[1]].player != piece.player:
+                    if len(state[neighbor[0]][neighbor[1]].group.liberties) == 0:
+                        state[neighbor[0]][neighbor[1]].group.capture(state)
 
 
         return state
@@ -179,6 +171,7 @@ class Go:
         # print("NEIGHBOURS: " + str(piece.neighbors))
         # print("PLAYER: " + str(piece.player))
         next_state = self.put_piece(next_state, action, piece)
+        go.player = go.change_player()
         # print("GROUP PIECES: " + str(piece.group.pieces))
         # print("GROUP LIBERTIES: " + str(piece.group.liberties))
 
@@ -223,6 +216,7 @@ class Go:
 
 
 
+args = [11,11]
 go = Go(args)
 state = go.get_initial_state()
 
@@ -232,7 +226,11 @@ while True:
 
     action = input("Input move (x,y): \n")
     action = action.split(",")
-    action = (int(action[0]), int(action[1]))
+    try:
+        action = (int(action[0]), int(action[1]))
+    except:
+        print("Invalid move")
+        continue
     while (action >= (go.x_dim, go.y_dim) or action < (0,0) or state[action[0]][action[1]] != 0):
         print("Invalid move")
         action = input("Input move (x,y): \n")
