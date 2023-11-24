@@ -105,6 +105,8 @@ class Group:
             piece.group = None
 
 
+# ##################################################################### #
+
 class Go:
     def __init__(self, args) -> None:
         self.args = args
@@ -112,6 +114,8 @@ class Go:
         self.y_dim = args[1]
         self.state = self.get_initial_state()
         self.player = 1
+        self.previous_equals = False
+        self.statelist = []
 
 
     def get_initial_state(self):
@@ -162,6 +166,16 @@ class Go:
 
     def get_next_state(self, state, action, player):
         next_state = state.copy()
+
+        if go.check_skip(state, action, go.player):
+            if self.previous_equals:
+                print("Game over")
+                return -1
+            else:
+                go.player = go.change_player()
+                self.previous_equals = True
+                return state
+
         # print("ACTION: " + str(action))
         piece = Piece(action, player, state, self.args)
         if self.suicide(state, piece):
@@ -172,6 +186,9 @@ class Go:
         # print("PLAYER: " + str(piece.player))
         next_state = self.put_piece(next_state, action, piece)
         go.player = go.change_player()
+        self.previous_equals = False
+        self.statelist.append(next_state)
+
         # print("GROUP PIECES: " + str(piece.group.pieces))
         # print("GROUP LIBERTIES: " + str(piece.group.liberties))
 
@@ -211,6 +228,11 @@ class Go:
                     valid_actions.append((i,j))
         return valid_actions
     
+    def check_skip(self, state, action, player):
+        if (action == (-1,-1)):
+            print("Player " + str(player) + " skips")
+            return True
+        
     def get_winner(self, state):
         pass
 
@@ -219,7 +241,6 @@ class Go:
 args = [11,11]
 go = Go(args)
 state = go.get_initial_state()
-
 
 while True:
     go.print_board(state)
@@ -231,10 +252,12 @@ while True:
     except:
         print("Invalid move")
         continue
-    while (action >= (go.x_dim, go.y_dim) or action < (0,0) or state[action[0]][action[1]] != 0):
+    while (action >= (go.x_dim, go.y_dim) or action < (-1,-1) or state[action[0]][action[1]] != 0):
         print("Invalid move")
         action = input("Input move (x,y): \n")
         action = action.split(",")
         action = (int(action[0]), int(action[1]))
 
     state = go.get_next_state(state, action, go.player)
+    if state == -1:
+        break
