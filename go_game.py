@@ -186,7 +186,7 @@ class Go:
         # print("PLAYER: " + str(piece.player))
         next_state = self.put_piece(next_state, action, piece)
         statemat = self.convert_state_to_matrix(next_state)
-        print("ADDING TO REPEAT CHECK: ")
+        #print("ADDING TO REPEAT CHECK: ")
         self.add_matrix_to_positions(statemat)
         go.player = go.change_player()
         self.previous_equals = False
@@ -254,7 +254,7 @@ class Go:
         pass
 
     def add_matrix_to_positions(self, matrix):
-        print(str(matrix))
+        # print(str(matrix))
         self.statelist.append(matrix)
 
     def convert_state_to_matrix(self, state):
