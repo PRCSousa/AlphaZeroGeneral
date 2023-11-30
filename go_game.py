@@ -7,7 +7,7 @@ class Piece:
         self.args = args
         self.state = state
         self.action = action  # (x, y)
-        self.player = player  # 1 or -1
+        self.player = player  # 1 or -1 or 0 (for territory calculations)
         self.x_dim = args[0]
         self.y_dim = args[1]
         self.neighbors = self.get_neighbors(
@@ -112,6 +112,7 @@ class Go:
         self.args = args
         self.x_dim = args[0]
         self.y_dim = args[1]
+        self.komi = args[2]
         self.state = self.get_initial_state()
         self.player = 1
         self.previous_equals = False
@@ -169,7 +170,7 @@ class Go:
 
         if go.check_skip(state, action, go.player):
             if self.previous_equals:
-                print("Game over")
+                self.get_winner(state)
                 return -1
             else:
                 go.player = go.change_player()
@@ -251,8 +252,49 @@ class Go:
             return True
 
     def get_winner(self, state):
-        pass
+        count_player1 = 0
+        territory_player1 = 0
+        territory_spaces1 = set()
+        count_player_1 = 0 + self.komi
+        territory_player_1 = 0
+        territory_spaces_1 = set()
 
+        for i in range(self.x_dim):
+            for j in range(self.y_dim):
+
+                if state[i][j] != 0 and state[i][j].player == 1:
+                    count_player1 += 1
+                    for neighbor in state[i][j].neighbors:
+                        piece = Piece((neighbor[0],neighbor[1]), 0, state, args)
+                        state[neighbor[0]][neighbor[1]] = piece
+                        sum = 0
+                        for adj in piece.neighbors:
+                            if state[adj[0]][adj[1]] != 0:
+                                sum += state[adj[0]][adj[1]].player
+                        if sum > 0 and abs(sum) >= 2:
+                            territory_spaces1.add((neighbor[0],neighbor[1]))
+
+                    territory_player1 = len(territory_spaces1)
+                        
+
+                elif state[i][j] != 0 and state[i][j].player == -1:
+                    count_player_1 += 1
+                    for neighbor in state[i][j].neighbors:
+                        piece = Piece((neighbor[0],neighbor[1]), 0, state, args)
+                        state[neighbor[0]][neighbor[1]] = piece
+                        sum = 0
+                        for adj in piece.neighbors:
+                            if state[adj[0]][adj[1]] != 0:
+                                sum += state[adj[0]][adj[1]].player
+                        if sum < 0 and abs(sum) >= 2:
+                            territory_spaces_1.add((neighbor[0],neighbor[1]))
+                    
+                    territory_player_1 = len(territory_spaces_1)
+
+        if count_player1+territory_player1 > count_player_1+territory_player_1:
+            print("Player 1 wins with " + str(count_player1) + " stones against and " + str(territory_player1) + "of territory against " + str(count_player_1) + " stones and " + str(territory_player_1) + " of territory")
+        elif count_player_1+territory_player1 > count_player1+territory_player_1:
+            print("Player -1 wins with " + str(count_player_1) + " stones and " + str(territory_player_1) + " of territory against " + str(count_player1) + " stones and " + str(territory_player1) + " of territory")
     def add_matrix_to_positions(self, matrix):
         # print(str(matrix))
         self.statelist.append(matrix)
@@ -268,7 +310,7 @@ class Go:
         return mat
 
 
-args = [5, 5]
+args = [5, 5, 5.5] # x, y, komi
 go = Go(args)
 state = go.get_initial_state()
 
