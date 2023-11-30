@@ -149,7 +149,7 @@ class Go:
 
         return state
 
-    def suicide(self, state, piece):
+    def suicide(self, state, piece) -> bool:
 
         # deepcopy the board to verify suicide
         copystate = deepcopy(state)
@@ -215,6 +215,8 @@ class Go:
             return False
 
         self.put_piece(statecopy, action, temppiece)
+        
+        if self.suicide(statecopy, temppiece): return False
 
         # print("NEW TEMPORARY STATE:")
         statecopy = self.convert_state_to_matrix(statecopy)
@@ -246,11 +248,11 @@ class Go:
     def change_player(self):
         return -self.player
 
-    def get_valid_actions(self, state, player):
+    def get_valid_moves(self, state, player):
         valid_actions = []
         for i in range(len(state)):
             for j in range(len(state[1])):
-                if state[i, j] == 0:
+                if state[i, j] == 0 and self.is_valid_move(state, (i, j), player):
                     valid_actions.append((i, j))
         return valid_actions
 
