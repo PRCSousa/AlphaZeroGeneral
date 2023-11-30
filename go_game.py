@@ -7,7 +7,7 @@ class Piece:
         self.args = args
         self.state = state
         self.action = action  # (x, y)
-        self.player = player  # 1 or -1
+        self.player = player  # 1 or -1 or 0 (for territory calculations)
         self.x_dim = args[0]
         self.y_dim = args[1]
         self.neighbors = self.get_neighbors(
@@ -100,9 +100,11 @@ class Group:
         return self
 
     def capture(self, state):
+        quant = len(self.pieces)
         for piece in self.pieces:
             state[piece.action[0]][piece.action[1]] = 0
             piece.group = None
+        return quant
 
 
 # ##################################################################### #
@@ -112,10 +114,12 @@ class Go:
         self.args = args
         self.x_dim = args[0]
         self.y_dim = args[1]
+        self.komi = args[2]
         self.state = self.get_initial_state()
         self.player = 1
         self.previous_equals = False
         self.statelist = []
+        self.prisioners = [0,0]
 
     def get_initial_state(self):
         board = []
@@ -126,6 +130,9 @@ class Go:
         return board
 
     def put_piece(self, state, action, piece: Piece):
+
+        pri = 0
+
         state[action[0]][action[1]] = piece  # temporary for checking
         piece.group.liberties = piece.group.search_liberties(
             piece.player, state)  # update liberties4,4
@@ -136,11 +143,13 @@ class Go:
                                                                         ][neighbor[1]].group.search_liberties(state[neighbor[0]][neighbor[1]], state)
                 if state[neighbor[0]][neighbor[1]].player != piece.player:
                     if len(state[neighbor[0]][neighbor[1]].group.liberties) == 0:
-                        state[neighbor[0]][neighbor[1]].group.capture(state)
+                        pri += state[neighbor[0]][neighbor[1]].group.capture(state)
+        
+        self.prisioners[0 if piece.player == -1 else 1] += pri
 
         return state
 
-    def suicide(self, state, piece):
+    def suicide(self, state, piece) -> bool:
 
         # deepcopy the board to verify suicide
         copystate = deepcopy(state)
@@ -169,7 +178,7 @@ class Go:
 
         if go.check_skip(state, action, go.player):
             if self.previous_equals:
-                print("Game over")
+                self.get_winner(state)
                 return -1
             else:
                 go.player = go.change_player()
@@ -206,6 +215,8 @@ class Go:
             return False
 
         self.put_piece(statecopy, action, temppiece)
+        
+        if self.suicide(statecopy, temppiece): return False
 
         # print("NEW TEMPORARY STATE:")
         statecopy = self.convert_state_to_matrix(statecopy)
@@ -237,11 +248,11 @@ class Go:
     def change_player(self):
         return -self.player
 
-    def get_valid_actions(self, state, player):
+    def get_valid_moves(self, state, player):
         valid_actions = []
         for i in range(len(state)):
             for j in range(len(state[1])):
-                if state[i, j] == 0:
+                if state[i, j] == 0 and self.is_valid_move(state, (i, j), player):
                     valid_actions.append((i, j))
         return valid_actions
 
@@ -250,9 +261,38 @@ class Go:
             print("Player " + str(player) + " skips")
             return True
 
-    def get_winner(self, state):
-        pass
+    def evaluate(self, state, player):
+        pieces = 0
+        territory = 0
+        prisioners = self.prisioners[0 if player == -1 else 1]
+        territory_spaces = set()
 
+        for i in range(self.x_dim):
+            for j in range(self.y_dim):
+                if state[i][j] != 0 and state[i][j].player == player:
+                    pieces += 1
+                    for neighbor in state[i][j].neighbors:
+                        piece = Piece((neighbor[0],neighbor[1]), 0, state, args)
+                        state[neighbor[0]][neighbor[1]] = piece
+                        sum = 0
+                        for adj in piece.neighbors:
+                            if state[adj[0]][adj[1]] != 0:
+                                sum += 1
+                        if sum > 0 and abs(sum) >= 2:
+                            territory_spaces.add((neighbor[0],neighbor[1]))
+
+                    territory = len(territory_spaces)
+
+        return pieces, territory, prisioners
+
+    def get_winner(self, state):
+        p1, t1, pri1 = self.evaluate(state, 1)
+        p2, t2, pri2 = self.evaluate(state, -1)
+
+        if p1 > p2:
+            print("Player 1 wins with " + str(p1) + " stones, " +  str(pri1) + " prisioners and " + str(t1) + " of territory against " + str(p2) + " stones, " + str(pri2) + " prisioners and " + str(t2) + " of territory")
+        elif p2 > p1:
+            print("Player -1 wins with " + str(p2) + " stones, " + str(pri2) + " prisioners and " + str(t2) + " of territory against " + str(p1) + " stones, " + str(pri1) + " prisioners and " + str(t1) + " of territory")
     def add_matrix_to_positions(self, matrix):
         # print(str(matrix))
         self.statelist.append(matrix)
@@ -268,7 +308,7 @@ class Go:
         return mat
 
 
-args = [5, 5]
+args = [5, 5, 5.5] # x, y, komi
 go = Go(args)
 state = go.get_initial_state()
 
