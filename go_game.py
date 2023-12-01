@@ -119,7 +119,7 @@ class Go:
         self.player = 1
         self.previous_equals = False
         self.statelist = []
-        self.prisioners = [0,0]
+        self.prisioners = [0, 0]
 
     def get_initial_state(self):
         board = []
@@ -143,9 +143,10 @@ class Go:
                                                                         ][neighbor[1]].group.search_liberties(state[neighbor[0]][neighbor[1]], state)
                 if state[neighbor[0]][neighbor[1]].player != piece.player:
                     if len(state[neighbor[0]][neighbor[1]].group.liberties) == 0:
-                        pri += state[neighbor[0]][neighbor[1]].group.capture(state)
-        
-        self.prisioners[0 if piece.player == -1 else 1] += pri
+                        pri += state[neighbor[0]][neighbor[1]
+                                                  ].group.capture(state)
+
+        self.prisioners[0 if piece.player == -1 else 1] += pri / 2
 
         return state
 
@@ -215,8 +216,9 @@ class Go:
             return False
 
         self.put_piece(statecopy, action, temppiece)
-        
-        if self.suicide(statecopy, temppiece): return False
+
+        if self.suicide(statecopy, temppiece):
+            return False
 
         # print("NEW TEMPORARY STATE:")
         statecopy = self.convert_state_to_matrix(statecopy)
@@ -229,6 +231,8 @@ class Go:
         return True
 
     def print_board(self, state):
+        print("\nEvaluation: 1 | %.1f | - | %.1f | -1" %(self.get_score( state, 1), self.get_score(state, -1)))
+        print("Prisioners: 1 | %.1f | - | %.1f | -1\n" %(self.prisioners[1], self.prisioners[0]))
         # Print column coordinates
         print("   ", end="")
         for j in range(len(state[0])):
@@ -262,6 +266,9 @@ class Go:
             return True
 
     def evaluate(self, state, player):
+
+        statecopy = deepcopy(state)
+
         pieces = 0
         territory = 0
         prisioners = self.prisioners[0 if player == -1 else 1]
@@ -269,30 +276,42 @@ class Go:
 
         for i in range(self.x_dim):
             for j in range(self.y_dim):
-                if state[i][j] != 0 and state[i][j].player == player:
+                if statecopy[i][j] != 0 and statecopy[i][j].player == player:
                     pieces += 1
-                    for neighbor in state[i][j].neighbors:
-                        piece = Piece((neighbor[0],neighbor[1]), 0, state, args)
-                        state[neighbor[0]][neighbor[1]] = piece
+                    for neighbor in statecopy[i][j].neighbors:
+                        piece = Piece(
+                            (neighbor[0], neighbor[1]), 0, statecopy, args)
+                        statecopy[neighbor[0]][neighbor[1]] = piece
                         sum = 0
                         for adj in piece.neighbors:
-                            if state[adj[0]][adj[1]] != 0:
+                            if statecopy[adj[0]][adj[1]] != 0:
                                 sum += 1
                         if sum > 0 and abs(sum) >= 2:
-                            territory_spaces.add((neighbor[0],neighbor[1]))
+                            territory_spaces.add((neighbor[0], neighbor[1]))
 
                     territory = len(territory_spaces)
 
         return pieces, territory, prisioners
+    
+    def get_score(self, state, player):
+        p1, t1, pri1 = self.evaluate(state, player)
+        if player == -1:
+            p1 += self.komi
+
+        score = p1 + t1 + pri1
+        return score
 
     def get_winner(self, state):
         p1, t1, pri1 = self.evaluate(state, 1)
         p2, t2, pri2 = self.evaluate(state, -1)
 
         if p1 > p2:
-            print("Player 1 wins with " + str(p1) + " stones, " +  str(pri1) + " prisioners and " + str(t1) + " of territory against " + str(p2) + " stones, " + str(pri2) + " prisioners and " + str(t2) + " of territory")
+            print("Player 1 wins with " + str(p1) + " stones, " + str(pri1) + " prisioners and " + str(t1) +
+                  " of territory against " + str(p2) + " stones, " + str(pri2) + " prisioners and " + str(t2) + " of territory")
         elif p2 > p1:
-            print("Player -1 wins with " + str(p2) + " stones, " + str(pri2) + " prisioners and " + str(t2) + " of territory against " + str(p1) + " stones, " + str(pri1) + " prisioners and " + str(t1) + " of territory")
+            print("Player -1 wins with " + str(p2) + " stones, " + str(pri2) + " prisioners and " + str(t2) +
+                  " of territory against " + str(p1) + " stones, " + str(pri1) + " prisioners and " + str(t1) + " of territory")
+
     def add_matrix_to_positions(self, matrix):
         # print(str(matrix))
         self.statelist.append(matrix)
@@ -308,7 +327,7 @@ class Go:
         return mat
 
 
-args = [5, 5, 5.5] # x, y, komi
+args = [5, 5, 5.5]  # x, y, komi
 go = Go(args)
 state = go.get_initial_state()
 
@@ -331,6 +350,7 @@ while True:
         continue
 
     while (state[action[0]][action[1]] != 0 or go.is_valid_move(state, action, go.player) == False):
+        print("Invalid Move: Not a valid move")
         action = input("Input move x,y | -1,-1 to pass: \n")
         action = action.split(",")
         action = (int(action[0]), int(action[1]))
