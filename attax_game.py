@@ -25,7 +25,7 @@ class Attaxx:
 
     def is_valid_move(self, state, action, player):
         a, b, a1, b1 = action
-        if abs(a-a1)>2 or abs(b-b1)>2 or state[a1][b1]!=0 or state[a][b]!=player:
+        if abs(a-a1)>2 or abs(b-b1)>2 or state[a1][b1]!=0 or state[a][b]!=player or ((abs(a-a1)==1 and abs(b-b1)==2) or (abs(a-a1)==2 and abs(b-b1)==1)):
             return False
 
         return True
@@ -41,7 +41,6 @@ class Attaxx:
                     pass
                 continue
 
-    #please dont think less of me for this:
     def check_available_moves(self, state, player):
         for i in range(self.x_dim):
             for j in range(self.y_dim):
@@ -52,6 +51,29 @@ class Attaxx:
                             if self.is_valid_move(state, action, player):
                                 return True
         return False
+
+    def get_valid_moves(self, state, player):
+
+        possible_moves = set()
+
+        for i in range(self.x_dim):
+            for j in range(self.y_dim):
+                if state[i][j] == player:
+                    moves_at_point = set(self.get_moves_at_point(state, player, i, j))
+                    possible_moves = possible_moves.union(moves_at_point)
+        
+        return possible_moves
+
+    def get_moves_at_point(self, state, player, a, b):
+
+        moves_at_point = []
+
+        for i in range(self.x_dim):
+            for j in range(self.y_dim):
+                possible_action = (a, b, i, j)
+                if self.is_valid_move(state, possible_action, player):
+                    moves_at_point.append(possible_action)
+        return moves_at_point 
 
     def check_board_full(self, state):
         for row in state:
@@ -85,6 +107,10 @@ class Attaxx:
                 return True, 2
         
         return False, 0
+    
+    def get_value_and_terminated(self, state, player):
+        game_over, winner = self.check_win_and_over()
+        return game_over, winner
     
     def print_board(self, state):
         state = state.astype(int)
@@ -120,6 +146,7 @@ while game:
         a, b, a1, b1 = tuple(int(x.strip()) for x in input().split(' ')) #input e assim: 0 0 0 0
         action = (a, b, a1, b1)
         if attaxx_game.is_valid_move(state, action, player):
+            print(attaxx_game.get_valid_moves(state, player))
             attaxx_game.get_next_state(state, action, player)
             player = - player
             win, winner = attaxx_game.check_win_and_over(state)
