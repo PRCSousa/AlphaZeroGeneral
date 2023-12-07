@@ -4,6 +4,7 @@ class Attaxx:
     def __init__(self, args):
         self.x_dim = args[0]
         self.y_dim = args[1]
+        self.action_size = self.x_dim * self.y_dim
     
     def get_initial_state(self):
         state = np.zeros((self.x_dim, self.y_dim))
@@ -21,6 +22,7 @@ class Attaxx:
         else:
             state[a1][b1] = player
         self.capture_pieces(state, action, player)
+        return state
         
 
     def is_valid_move(self, state, action, player):
@@ -58,6 +60,7 @@ class Attaxx:
 
         for i in range(self.x_dim):
             for j in range(self.y_dim):
+                print(state[i][j])
                 if state[i][j] == player:
                     moves_at_point = set(self.get_moves_at_point(state, player, i, j))
                     possible_moves = possible_moves.union(moves_at_point)
@@ -94,23 +97,23 @@ class Attaxx:
                 elif state[i][j] == -1:
                     count_player2+=1
         if count_player1 == 0:
-            return True, -1
+            return -1, True
         elif count_player2 == 0:
-            return True, 1
+            return 1, True
         
         if self.check_board_full(state):
             if count_player1>count_player2:
-                return True, 1
+                return 1, True
             elif count_player2>count_player1:
-                return True, -1
+                return -1, True
             elif count_player1==count_player2:
-                return True, 2
+                return 2, True
         
-        return False, 0
+        return 0, False
     
-    def get_value_and_terminated(self, state, player):
-        game_over, winner = self.check_win_and_over()
-        return game_over, winner
+    def get_value_and_terminated(self, state):
+        winner, game_over = self.check_win_and_over(state)
+        return winner, game_over
     
     def print_board(self, state):
         state = state.astype(int)
@@ -149,7 +152,7 @@ while game:
             print(attaxx_game.get_valid_moves(state, player))
             attaxx_game.get_next_state(state, action, player)
             player = - player
-            win, winner = attaxx_game.check_win_and_over(state)
+            winner, win = attaxx_game.check_win_and_over(state)
             if win:
                 attaxx_game.print_board(state)
                 print(f"player {winner} wins")
