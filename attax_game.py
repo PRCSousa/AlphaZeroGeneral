@@ -132,30 +132,3 @@ class Attaxx:
             for j in range(len(state[0])):
                 print(f"{str(state[i][j]):2}", end=" ")
             print()
-
-attaxx_game = Attaxx([5, 5])
-state = attaxx_game.get_initial_state()
-player = 1
-
-game = True
-
-while game:
-
-    print(f"Player {player} to move")
-    attaxx_game.print_board(state)
-
-
-    if attaxx_game.check_available_moves(state, player):
-        a, b, a1, b1 = tuple(int(x.strip()) for x in input().split(' ')) #input e assim: 0 0 0 0
-        action = (a, b, a1, b1)
-        if attaxx_game.is_valid_move(state, action, player):
-            print(attaxx_game.get_valid_moves(state, player))
-            attaxx_game.get_next_state(state, action, player)
-            player = - player
-            winner, win = attaxx_game.check_win_and_over(state)
-            if win:
-                attaxx_game.print_board(state)
-                print(f"player {winner} wins")
-                exit()
-    else:
-        player = -player
