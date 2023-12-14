@@ -57,9 +57,9 @@ def hover_to_select(player,valid_moves,click):
         if distance < PIECE_SIZE:
             s = pygame.Surface((SCREEN_SIZE, SCREEN_SIZE), pygame.SRCALPHA)
             if player == 1:
-                pygame.draw.circle(s,(255,255,255,255),(to_pixels(x),to_pixels(y)),PIECE_SIZE)
+                pygame.draw.circle(s,(255,255,255,200),(to_pixels(x),to_pixels(y)),PIECE_SIZE)
             if player == -1:
-                pygame.draw.circle(s,(0,0,0,255),(to_pixels(x),to_pixels(y)),PIECE_SIZE)
+                pygame.draw.circle(s,(0,0,0,200),(to_pixels(x),to_pixels(y)),PIECE_SIZE)
             pygame.draw.circle(s,BLACK,(to_pixels(x),to_pixels(y)),PIECE_SIZE,3)
             screen.blit(s, (0, 0))
         if click:
