@@ -10,6 +10,7 @@ class Piece:
         self.player = player  # 1 or -1 or 0 (for territory calculations)
         self.x_dim = args[0]
         self.y_dim = args[1]
+        self.action_size = self.x_dim * self.y_dim
         self.neighbors = self.get_neighbors(
             action)  # list of neighbour coordinates
         self.group = self.search_group(action, player, state)
