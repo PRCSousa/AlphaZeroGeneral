@@ -60,7 +60,7 @@ class Attaxx:
 
         for i in range(self.x_dim):
             for j in range(self.y_dim):
-                print(state[i][j])
+                state[i][j] = int(state[i][j])
                 if state[i][j] == player:
                     moves_at_point = set(self.get_moves_at_point(state, player, i, j))
                     possible_moves = possible_moves.union(moves_at_point)

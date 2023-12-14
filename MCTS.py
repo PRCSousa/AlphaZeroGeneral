@@ -6,7 +6,7 @@ class Node():
     def __init__(self, game, C, state, player, parent = None, action_taken = None) -> None:
         self.game = game
         self.C = C
-        self.state = state
+        self.state = state.astype(int)
         self.parent = parent
         self.action_taken = action_taken
         self.player = player
