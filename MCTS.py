@@ -1,17 +1,21 @@
 import numpy as np
 import math
 from attax_game import Attaxx
+from copy import deepcopy
 
 class Node():
     def __init__(self, game, C, state, player, parent = None, action_taken = None) -> None:
         self.game = game
         self.C = C
-        self.state = state
+        self.state = state.astype('int32')
+        print("fsd")
+        print(self.state)
         self.parent = parent
         self.action_taken = action_taken
         self.player = player
+        print("PLAYER NO NODE: " + str(player))
         self.children = []
-        self.expandable_moves = game.get_valid_moves(self.state, player)
+        self.expandable_moves = game.get_valid_moves(self.state, self.player)
 
         self.visit_count = 0
         self.value_sum = 0
@@ -40,10 +44,10 @@ class Node():
         random_index = np.random.choice(len(self.expandable_moves), 1)[0]
         action = moves_arr[random_index]
         self.expandable_moves.remove(action)
-
-        child_state = self.state.copy()
+        print("PLAYER NO EXPAND: " + str(player))
+        child_state = deepcopy(self.state)
         child_state = self.game.get_next_state(child_state, action, player)
-        child = Node(self.game, self.C, child_state, action, -player)
+        child = Node(game = self.game, C = self.C, state = child_state, action_taken = action, player = -player, parent = self)
         self.children.append(child)
         return child
     
@@ -53,7 +57,7 @@ class Node():
         if is_terminal:
             return value
 
-        rollout_state = self.state.copy()
+        rollout_state = deepcopy(self.state)
         rollout_player = player
         while True:
             valid_moves = self.game.get_valid_moves(rollout_state, rollout_player)
@@ -111,13 +115,14 @@ state = attaxx_game.get_initial_state()
 mcts = MCTS(attaxx_game, 1.41, 1000)
 player = 1
 
-while True:
-    print(state)
+while True: 
+    attaxx_game.print_board(state)
+    print("So true")
 
     if player == 1:
-
+        print("Player 1")
         if attaxx_game.check_available_moves(state, player):
-            print(attaxx_game.get_valid_moves(state, player))
+            # print(attaxx_game.get_valid_moves(state, player))
             a, b, a1, b1 = tuple(int(x.strip()) for x in input().split(' ')) #input e assim: 0 0 0 0
             action = (a, b, a1, b1)
             if attaxx_game.is_valid_move(state, action, player):
@@ -130,10 +135,11 @@ while True:
                     exit()
     
     else:
-        print(attaxx_game.get_valid_moves(state, player))
+        print("Player -1 MCTS")
+        # print(attaxx_game.get_valid_moves(state, player))
         mcts_prob = mcts.search(state, player)
         action_selected = max(mcts_prob)
-        print(action_selected)
+        print("Acoes: " + action_selected)
         if attaxx_game.is_valid_move(state, action_selected, player):
                 attaxx_game.get_next_state(state, action, player)
                 player = - player
