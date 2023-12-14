@@ -16,6 +16,7 @@ class Attaxx:
 
     def get_next_state(self, state, action, player):
         a, b, a1, b1 = action
+        # print(a, b, a1, b1)
         if abs(a-a1)==2 or abs(b-b1)==2:
             state[a][b] = 0
             state[a1][b1] = player
