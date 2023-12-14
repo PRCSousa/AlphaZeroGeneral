@@ -32,7 +32,7 @@ class Piece:
 
         # if neighbors has no pieces of same player
         if neighbors == []:
-            group = Group(action, player, state, args)
+            group = Group(action, player, state, self.args)
             group.add_piece(self)
             return group
 
@@ -43,7 +43,7 @@ class Piece:
                 groups.append(neighbor.group)
 
         if groups == []:
-            group = Group(action, player, state, args)
+            group = Group(action, player, state, self.args)
             group.add_piece(self)
             return group
 
@@ -151,7 +151,7 @@ class Go:
 
         return state
 
-    def suicide(self, state, piece) -> bool:
+    def suicide(self, state, piece, action) -> bool:
 
         # deepcopy the board to verify suicide
         copystate = deepcopy(state)
@@ -178,18 +178,18 @@ class Go:
     def get_next_state(self, state, action, player):
         next_state = state.copy()
 
-        if go.check_skip(state, action, go.player):
+        if self.check_skip(state, action, self.player):
             if self.previous_equals:
-                self.get_winner(state)
+                # print winner
                 return -1
             else:
-                go.player = go.change_player()
+                self.player = self.change_player()
                 self.previous_equals = True
                 return state
 
         # print("ACTION: " + str(action))
         piece = Piece(action, player, state, self.args)
-        if self.suicide(state, piece):
+        if self.suicide(state, piece, action):
             print("Suicide is an illegal move")
             return state
 
@@ -199,7 +199,7 @@ class Go:
         statemat = self.convert_state_to_matrix(next_state)
         #print("ADDING TO REPEAT CHECK: ")
         self.add_matrix_to_positions(statemat)
-        go.player = go.change_player()
+        self.player = self.change_player()
         self.previous_equals = False
 
         # print("GROUP PIECES: " + str(piece.group.pieces))
@@ -211,14 +211,14 @@ class Go:
         x, y = action
 
         statecopy = deepcopy(state)
-        temppiece = Piece(action, player, statecopy, args)
+        temppiece = Piece(action, player, statecopy, self.args)
 
         if state[x][y] != 0:
             return False
 
         self.put_piece(statecopy, action, temppiece)
 
-        if self.suicide(statecopy, temppiece):
+        if self.suicide(statecopy, temppiece, action):
             return False
 
         # print("NEW TEMPORARY STATE:")
@@ -227,7 +227,7 @@ class Go:
         # print("VERIFYING REPEATED LIST: ")
         # print(str(self.statelist))
         if any(np.array_equal(statecopy, stateelement) for stateelement in self.statelist):
-            print("Invalid Move: Repeated State")
+            #print("Invalid Move: Repeated State")
             return False
         return True
 
@@ -257,9 +257,16 @@ class Go:
         valid_actions = []
         for i in range(len(state)):
             for j in range(len(state[1])):
-                if state[i, j] == 0 and self.is_valid_move(state, (i, j), player):
+                if state[i][j] == 0 and self.is_valid_move(state, (i, j), player):
                     valid_actions.append((i, j))
         return valid_actions
+    
+    def check_available_moves(self, state, player):
+        if len(self.get_valid_moves(state, player)) > 0:
+            return True
+        else:
+            return False
+
 
     def check_skip(self, state, action, player):
         if (action == (-1, -1)):
@@ -271,47 +278,37 @@ class Go:
         statecopy = deepcopy(state)
 
         pieces = 0
-        territory = 0
         prisioners = self.prisioners[0 if player == -1 else 1]
-        territory_spaces = set()
 
         for i in range(self.x_dim):
             for j in range(self.y_dim):
-                if statecopy[i][j] != 0 and statecopy[i][j].player == player:
-                    pieces += 1
-                    for neighbor in statecopy[i][j].neighbors:
-                        piece = Piece(
-                            (neighbor[0], neighbor[1]), 0, statecopy, args)
-                        statecopy[neighbor[0]][neighbor[1]] = piece
-                        sum = 0
-                        for adj in piece.neighbors:
-                            if statecopy[adj[0]][adj[1]] != 0:
-                                sum += 1
-                        if sum > 0 and abs(sum) >= 2:
-                            territory_spaces.add((neighbor[0], neighbor[1]))
+                pieces += 1 if statecopy[i][j] == player else 0
 
-                    territory = len(territory_spaces)
-
-        return pieces, territory, prisioners
+        return pieces, prisioners
+                
     
     def get_score(self, state, player):
-        p1, t1, pri1 = self.evaluate(state, player)
+        p1, t1 = self.evaluate(state, player)
         if player == -1:
             p1 += self.komi
 
-        score = p1 + t1 + pri1
+        score = p1 + t1
         return score
-
-    def get_winner(self, state):
-        p1, t1, pri1 = self.evaluate(state, 1)
-        p2, t2, pri2 = self.evaluate(state, -1)
-
-        if p1 > p2:
-            print("Player 1 wins with " + str(p1) + " stones, " + str(pri1) + " prisioners and " + str(t1) +
-                  " of territory against " + str(p2) + " stones, " + str(pri2) + " prisioners and " + str(t2) + " of territory")
-        elif p2 > p1:
-            print("Player -1 wins with " + str(p2) + " stones, " + str(pri2) + " prisioners and " + str(t2) +
-                  " of territory against " + str(p1) + " stones, " + str(pri1) + " prisioners and " + str(t1) + " of territory")
+    
+    def check_win_and_over(self, state):
+        if not self.check_available_moves(state, 1) and not self.check_available_moves(state, -1):
+            if self.get_score(state, 1) > self.get_score(state, -1):
+                return 1, True
+            elif self.get_score(state, 1) < self.get_score(state, -1):
+                return -1, True
+            else:
+                return 2, True
+        else:
+            return 0, False
+        
+    def get_value_and_terminated(self, state):
+        winner, game_over = self.check_win_and_over(state)
+        return winner, game_over
 
     def add_matrix_to_positions(self, matrix):
         # print(str(matrix))
@@ -326,37 +323,3 @@ class Go:
                 elif str(state[i][j]) == "-1":
                     mat[i][j] = -1
         return mat
-
-
-args = [5, 5, 5.5]  # x, y, komi
-go = Go(args)
-state = go.get_initial_state()
-
-while True:
-    go.print_board(state)
-
-    action = input("Input move x,y | -1,-1 to pass: \n")
-    action = action.split(",")
-
-    try:
-        action = (int(action[0]), int(action[1]))
-        while (action[0] >= go.x_dim or action[1] >= go.y_dim or action[0] < -1 or action[1] < -1):
-            print("Invalid Move: Out of Bounds")
-            action = input("Input move x,y | -1,-1 to pass: \n")
-            action = action.split(",")
-            action = (int(action[0]), int(action[1]))
-
-    except:
-        print("Invalid Move: Not a number")
-        continue
-
-    while (state[action[0]][action[1]] != 0 or go.is_valid_move(state, action, go.player) == False):
-        print("Invalid Move: Not a valid move")
-        action = input("Input move x,y | -1,-1 to pass: \n")
-        action = action.split(",")
-        action = (int(action[0]), int(action[1]))
-
-    state = go.get_next_state(state, action, go.player)
-
-    if state == -1:
-        break
