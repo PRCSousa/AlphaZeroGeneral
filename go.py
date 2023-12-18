@@ -105,7 +105,7 @@ class Go:
             for x in range(len(self.board)):
                 self.board[y][x] = 0
 
-    def print_board(self) -> None:
+    def draw_board(self) -> None:
 
         # Print column coordinates
             print("   ", end="")
@@ -155,7 +155,6 @@ class Go:
                         #if the move is a "ko" move but causes the capture of stones, then it is not allowed, unless it is the second move, in which case it is dealt afterwards
                         if self.seki_count == 0:
                             # print("Seki Found")
-
                             #returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
                             check = True
                             self.seki_count = 1
@@ -163,7 +162,7 @@ class Go:
 
                     #restore the board
                     self.restore_board()
-        # print("Captures: " + str(check))
+        print("Captures: " + str(check))
         return check
 
     def change_player(self):
@@ -187,7 +186,7 @@ class Go:
         a, b = action
         self.set_stone(a,b)
         if self.seki_count == 1:
-            self.captures(self.get_player())
+            self.captures(3 - self.get_player())
             post_board = numpy.copy(self.board)
 
             #if it is continue until the ko fight is not initiated
@@ -202,14 +201,15 @@ class Go:
 
 
 
-    def make_move(self, action):
+    def get_next_state(self, action):
         a, b = action
         #checking if the move is part of is the secondary move to a ko fight
         pre_board = numpy.copy(self.board)
         self.set_stone(a,b)
         if self.seki_count == 1:
             # print("Seki Found")
-            self.captures(self.get_player())
+            # print("Board in Ko Fight: " + str(self.board))
+            self.captures(3 - self.get_player())
             post_board = numpy.copy(self.board)
 
             # print("Pre-Board:\n")
@@ -221,24 +221,21 @@ class Go:
             #if it is continue until the ko fight is not initiated
             if (pre_board == post_board).all():
                 print("Illegal Move: Ko Repetition")
-                
-                return False
+                pass
 
             #if not secondary move to the ko fight, then place the stone
             else:
-                self.print_board()
                 self.seki_count = 0
-            
-            #any move that doesn't fall within the rules for a ko fight
-            self.change_player()
-            return True
-        else:
-            self.seki_count = 0
-            if self.captures(3-self.get_player()) == False and self.captures(self.get_player()) == True:
-                print("Illegal Move: Suicide")
-                return False
 
-            go.change_player()
+            # print("After Ko Fight: " + str(self.board))
+        
+        else:
+            # print("Board not in ko fight: " + str(self.board))
+            self.seki_count = 0
+            self.captures(3 - self.get_player())
+            # print("After no kofight" + str(self.board))
+        
+        return self.board
 
     def check_board_full(self):
 
@@ -294,13 +291,15 @@ args = [9, 5.5]
 
 go = Go(args)
 
-go.print_board()
+go.draw_board()
 
 while True:
     print("Player: " + str(go.get_player()))
     print("Input: ")
     a, b = tuple(int(x.strip()) for x in input().split(' '))
     action = (a, b)
-    go.make_move(action)
+    if go.is_valid_move(action):
+        go.board = go.get_next_state(action)
+        go.change_player()
 
-    go.print_board()
+    go.draw_board()
