@@ -1,7 +1,7 @@
 import numpy as np
 import math
 from attax_game import Attaxx
-from go_game import Go
+from go import Go
 from matplotlib import pyplot
 from copy import deepcopy
 
@@ -126,7 +126,7 @@ else:
     mode = "Go"
 
 if mode == "Go":
-    args = [5, 5, 5.5]  # x, y, komi
+    args = [5, 5.5]  # size, komi
     attaxx_game = Go(args)
 else:
     attaxx_game = Attaxx([5, 5])
