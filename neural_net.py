@@ -5,6 +5,10 @@ from go_game import Go
 #from matplotlib import pyplot
 from copy import deepcopy
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 class Node():
     def __init__(self, game, C, state, player, parent = None, action_taken = None) -> None:
         self.game = game
@@ -88,6 +92,60 @@ class Node():
         if self.parent is not None:
             self.parent.backpropagate(value)
 
+class ResNet(nn.Module):
+    def __init__(self, game, num_resBlocks, num_hidden):
+        super().__init__()
+        self.startBlock = nn.Sequential(
+            nn.Conv2d(3, num_hidden, kernel_size=3, padding=1),
+            nn.BatchNorm2d(num_hidden),
+            nn.ReLU()
+        )
+        
+        self.backBone = nn.ModuleList(
+            [ResBlock(num_hidden) for i in range(num_resBlocks)]
+        )
+        
+        self.policyHead = nn.Sequential(
+            nn.Conv2d(num_hidden, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(32 * game.x_dim * game.y_dim, game.action_size)
+        )
+        
+        self.valueHead = nn.Sequential(
+            nn.Conv2d(num_hidden, 3, kernel_size=3, padding=1),
+            nn.BatchNorm2d(3),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(3 * game.x_dim * game.y_dim, 1),
+            nn.Tanh()
+        )
+        
+    def forward(self, x):
+        x = self.startBlock(x)
+        for resBlock in self.backBone:
+            x = resBlock(x)
+        policy = self.policyHead(x)
+        value = self.valueHead(x)
+        return policy, value
+    
+class ResBlock(nn.Module):
+    def __init__(self, num_hidden):
+        super().__init__()
+        self.conv1 = nn.Conv2d(num_hidden, num_hidden, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(num_hidden)
+        self.conv2 = nn.Conv2d(num_hidden, num_hidden, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(num_hidden)
+        
+    def forward(self, x):
+        residual = x
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = self.bn2(self.conv2(x))
+        x += residual
+        x = F.relu(x)
+        return x
+
 class MCTS():
     def __init__(self, game, args) -> None:
         self.game = game
@@ -119,65 +177,31 @@ class MCTS():
             action_probs[child.action_taken] = child.visit_count
         return action_probs
 
-a = input("Attaxx or Go? (A/G): ")
-mode = "Attaxx" if a == "A" else "Go"
-
-if mode == "Go":
-    args_go = [5, 5, 5.5]  # size, komi
-    game = Go(args_go)
-else:
-    game = Attaxx([5, 5])
-
-args_mcts = {
-    'C': 1.41,
-    'num_searches': 10000
-}
+game = Attaxx([5, 5])
 
 state = game.get_initial_state()
-mcts = MCTS(game, args_mcts)
 player = 1
 
-while True: 
-    game.print_board(state)
+state = game.get_initial_state()
+state = game.get_next_state(state, [0, 0, 0, 2], 1)
+state = game.get_next_state(state, [0, 4, 1, 4], -1)
 
-    if player == 1:
-        print("Player 1")
-        if game.check_available_moves(state, player):
-            # print(game.get_valid_moves(state, player))
-            if mode == "Attaxx":
-                a, b, a1, b1 = tuple(int(x.strip()) for x in input().split(' ')) #input e assim: 0 0 0 0
-                action = (a, b, a1, b1)
-            else:
-                a, b = tuple(int(x.strip()) for x in input().split(' '))
-                action = (a, b)
-            if game.is_valid_move(state, action, player):
-                game.get_next_state(state, action, player)
-                player = - player
-                winner, win = game.check_win_and_over(state)
-                if win:
-                    game.print_board(state)
-                    print(f"player {winner} wins")
-                    exit()
-    
-    else:
-        print("Player -1 MCTS")
-        print("BEGIN SEARCH")
-        # print(game.get_valid_moves(state, player))
-        mcts_prob = mcts.search(state, player)
-        action_selected = list(mcts_prob.keys())[0]
-        print("END SEARCH")
-        print("ACTION SELECTED: " + str(action_selected))
-        for action in mcts_prob:
-            print(str(action) + ": " + str(mcts_prob[action]))
-            if mcts_prob[action] >= mcts_prob[action_selected]:
-                #print("ACTION SELECTED: " + str(action))
-                action_selected = action
-        #print("ACTION SELECTED: " + str(action_selected))
-        if game.is_valid_move(state, action_selected, player):
-                game.get_next_state(state, action_selected, player)
-                player = - player
-                winner, win = game.check_win_and_over(state)
-                if win:
-                    game.print_board(state)
-                    print(f"player {winner} wins")
-                    exit()
+print(state)
+encoded_state = game.get_encoded_state(state)
+
+print(encoded_state)
+
+tensor_state = torch.tensor(encoded_state).unsqueeze(0)
+
+model = ResNet(game, 4, 64)
+
+policy, value = model(tensor_state)
+value = value.item()
+policy = torch.softmax(policy, axis=1).squeeze(0).detach().cpu().numpy()
+
+print(value, policy)
+
+import matplotlib.pyplot as plt
+
+plt.bar(range(game.action_size), policy)
+plt.show()
