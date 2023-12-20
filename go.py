@@ -154,7 +154,7 @@ class Go:
 
                         #if the move is a "ko" move but causes the capture of stones, then it is not allowed, unless it is the second move, in which case it is dealt afterwards
                         if self.seki_count == 0:
-                            # print("Seki Found")
+                            print("Seki Found")
                             #returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
                             check = True
                             self.seki_count = 1
@@ -162,7 +162,8 @@ class Go:
 
                     #restore the board
                     self.restore_board()
-        print("Captures: " + str(check))
+        # print("Seki Count: " + str(self.seki_count))
+        #print("Captures: " + str(check))
         return check
 
     def change_player(self):
@@ -177,64 +178,50 @@ class Go:
         return self.color
 
     def set_stone(self,y,x):
-
         #making move on the board
         self.board[y][x] = self.color
 
     def is_valid_move(self, action):
+
         pre_board = numpy.copy(self.board)
         a, b = action
         self.set_stone(a,b)
-        if self.seki_count == 1:
-            self.captures(3 - self.get_player())
-            post_board = numpy.copy(self.board)
 
-            #if it is continue until the ko fight is not initiated
-            if (pre_board == post_board).all():
+        self.captures(3 - self.get_player())
+        str_board = self.board_to_str()
+
+        if str_board in self.history:
+            print("Invalid Move: Repeated State")
+            self.board = numpy.copy(pre_board)
+            return False
+
+        if self.seki_count == 1:
+            if str_board in self.history:
+                print("Invalid Move: Repeated State")
+                self.board = numpy.copy(pre_board)
                 return False
         else:
             if self.captures(3-self.get_player()) == False and self.captures(self.get_player()) == True:
+                print("Invalid Move: Suicide")
+                self.board = numpy.copy(pre_board)
                 return False
             
-        self.board = numpy.copy(pre_board)
+        self.board = numpy.copy(pre_board)  
         return True
+    
+    def board_to_str(self):
+        return ''.join([''.join(map(str, row)) for row in self.board])
 
-
+    def save_state(self):
+        str_board = self.board_to_str()
+        self.history.append(str_board)  # Save string to history list
 
     def get_next_state(self, action):
         a, b = action
-        #checking if the move is part of is the secondary move to a ko fight
-        pre_board = numpy.copy(self.board)
-        self.set_stone(a,b)
-        if self.seki_count == 1:
-            # print("Seki Found")
-            # print("Board in Ko Fight: " + str(self.board))
-            self.captures(3 - self.get_player())
-            post_board = numpy.copy(self.board)
-
-            # print("Pre-Board:\n")
-            # print(pre_board)
-            # print("\n")
-            # print("Post-Board:\n")
-            # print(post_board)
-
-            #if it is continue until the ko fight is not initiated
-            if (pre_board == post_board).all():
-                print("Illegal Move: Ko Repetition")
-                pass
-
-            #if not secondary move to the ko fight, then place the stone
-            else:
-                self.seki_count = 0
-
-            # print("After Ko Fight: " + str(self.board))
-        
-        else:
-            # print("Board not in ko fight: " + str(self.board))
-            self.seki_count = 0
-            self.captures(3 - self.get_player())
-            # print("After no kofight" + str(self.board))
-        
+        # checking if the move is part of is the secondary move to a ko fight
+        self.set_stone(a, b)
+        self.captures(3-self.get_player())
+        self.save_state()
         return self.board
 
     def check_board_full(self):
@@ -301,5 +288,6 @@ while True:
     if go.is_valid_move(action):
         go.board = go.get_next_state(action)
         go.change_player()
+        
 
     go.draw_board()
