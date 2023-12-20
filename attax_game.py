@@ -86,7 +86,8 @@ class Attaxx:
         
         return True
 
-    def check_win_and_over(self, state):
+    def check_win_and_over(self, state, action):
+        # action não é necessário para o attaxx, mas é necessário para o go
 
         count_player1 = 0
         count_player2 = 0
@@ -113,7 +114,7 @@ class Attaxx:
         return 0, False
     
     def get_value_and_terminated(self, state):
-        winner, game_over = self.check_win_and_over(state)
+        winner, game_over = self.check_win_and_over(state, action = None)
         return winner, game_over
     
     def print_board(self, state):

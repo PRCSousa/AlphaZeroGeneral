@@ -5,11 +5,19 @@ class Go:
 
     EMPTY = 0
     BLACK = 1
-    WHITE = 2
-    MARKER = 4
+    WHITE = -1
+    BLACKMARKER = 4
+    WHITEMARKER = 5
     LIBERTY = 8
 
     def __init__(self, args: list) -> None:
+        '''
+        # Description:
+        Initializes the game of Go.
+        
+        # Arguments:
+        args: A list containing the board size and the komi. [board_size, komi]
+        '''
         self.args = args
         self.board_size = int(args[0])
         self.komi = float(args[1])
@@ -77,12 +85,15 @@ class Go:
         
         #initialize piece
         piece = state[y][x]
-        #if there's a stone at square
-        if piece and piece & player and (piece & self.MARKER) == 0:
+        #if there's a stone at square of the given player
+        if piece == player:
             #save stone coords
             block.append((y,x))
             #mark the stone
-            state[y][x] |= self.MARKER
+            if player == self.BLACK:
+                state[y][x] = self.BLACKMARKER
+            else:
+                state[y][x] = self.WHITEMARKER
             
             #look for neighbours recursively
             if y-1 >= 0:
@@ -134,15 +145,24 @@ class Go:
         '''
 
         #unmark stones
+        # print("Restore Board")
+        # print(state)
         for y in range(len(state)):
             for x in range(len(state)):
                 #restore piece
                 val = state[y][x]
-                new_val = val & 3
-                state[y][x] = new_val
+                if val == self.BLACKMARKER:
+                    state[y][x] = self.BLACK
+                elif val == self.WHITEMARKER:
+                    state[y][x] = self.WHITE
+                elif val == self.LIBERTY:
+                    state[y][x] = self.EMPTY
+
+        # print("After Restore Board")
+        # print(state)
         return state
 
-    def draw_board(self, state) -> None:
+    def print_board(self, state) -> None:
             '''
             # Description:
             Draws the board in the console.
@@ -221,20 +241,7 @@ class Go:
         return check, state
 
     def change_player(self, player: int) -> int:
-        '''
-        # Description:
-        Changes the player.
-
-        # Returns:
-        The other player.
-        '''
-        #switching colours for the next move
-        if player == self.BLACK:
-            player = self.WHITE
-        else:
-            player = self.BLACK
-            
-        return player
+        return -player
 
     def set_stone(self, y: int, x: int, state: list, player: int) -> list:
         '''
@@ -246,6 +253,7 @@ class Go:
         '''
 
         state[y][x] = player
+        # print(state)
         return state
 
     def is_valid_move(self, state: list, action: tuple, player: int) -> bool:
@@ -264,28 +272,28 @@ class Go:
         a, b = action
 
         if a >= self.board_size or a < -1 or b < -1 or b >= self.board_size:
-            print("Invalid Move: Out of Bounds")
+            # print("Invalid Move: Out of Bounds")
             return False
 
         if state[a][b] != self.EMPTY:
-            print("Invalid Move: Space Occupied")
+            # print("Invalid Move: Space Occupied")
             return False 
         statecopy = self.set_stone(a,b, statecopy, player)
 
-        statecopy = self.captures(statecopy, 3 - player)[1]
+        statecopy = self.captures(statecopy, -player)[1]
         str_board = self.board_to_str(statecopy)
 
         if str_board in self.history:
-            print("Invalid Move: Repeated State")
+            # print("Invalid Move: Repeated State")
             return False
 
         if self.seki_count == 1:
             if str_board in self.history:
-                print("Invalid Move: Repeated State")
+                # print("Invalid Move: Repeated State")
                 return False
         else:
-            if self.captures(statecopy, 3-player)[0] == False and self.captures(statecopy, player)[0] == True:
-                print("Invalid Move: Suicide")
+            if self.captures(statecopy, -player)[0] == False and self.captures(statecopy, player)[0] == True:
+                # print("Invalid Move: Suicide")
                 return False
             
         return True
@@ -322,7 +330,7 @@ class Go:
         a, b = action
         # checking if the move is part of is the secondary move to a ko fight
         state = self.set_stone(a, b, state, player)
-        state = self.captures(state, 3 - player)[1]
+        state = self.captures(state, -player)[1]
         self.save_state(state)
         return state
 
@@ -345,7 +353,7 @@ class Go:
                 
         return True
 
-    def check_win_and_over(self, state: list) -> tuple[int, bool]:
+    def check_win_and_over(self, state: list, action: tuple) -> tuple[int, bool]:
         '''
         # Description:
         Checks if the game is over and if there is a winner.
@@ -399,7 +407,12 @@ class Go:
         # Returns:
         A tuple containing the score of the game and a boolean indicating if the game is over.
         '''
-        return self.check_score(state), self.check_board_full(state)
+        score = self.check_score(state)
+        terminated = False
+        if self.check_board_full(state) or self.check_available_moves(state, 1) == False or self.check_available_moves(state, -1) == False:
+            terminated = True
+        
+        return score, terminated
     
     def get_valid_moves(self,state: list, player: int) -> set[tuple[int, int]]:
         '''
@@ -418,13 +431,30 @@ class Go:
                     possible_moves.add(action)
         
         return possible_moves
+    
+    def check_available_moves(self, state: list, player: int) -> bool:
+        '''
+        # Description:
+        Checks if there are any available moves.
+
+        # Returns:
+        True if there are available moves.
+        '''
+        for i in range(len(state)):
+            for j in range(len(state)):
+                action = (i, j)
+                if self.is_valid_move(state, action, player):
+                    return True
+        return False
+
+# Default Go Runtime
 
 
 args = [9, 5.5]
 
 go = Go(args)
 state = go.get_initial_state()
-go.draw_board(state)
+go.print_board(state)
 
 player = 1
 print("Player: " + str(player))
@@ -435,11 +465,13 @@ while True:
     action = (a, b)
     if go.is_valid_move(state, action, player):
         state = go.get_next_state(state, action, player)
-        winner, win = go.check_win_and_over(state)
+        winner, win = go.check_win_and_over(state, action)
         if win:
             print("Winner: " + str(winner))
             break
         player = go.change_player(player)
-        go.draw_board(state)
+        go.print_board(state)
         print("Player: " + str(player))
         print("Input: ")
+
+        

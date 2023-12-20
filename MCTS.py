@@ -1,7 +1,7 @@
 import numpy as np
 import math
 from attax_game import Attaxx
-from go_game import Go
+from go import Go
 #from matplotlib import pyplot
 from copy import deepcopy
 
@@ -20,6 +20,7 @@ class Node():
         self.value_sum = 0
     
     def is_fully_expanded(self):
+        # print("EXPANDABLE MOVES: " + str(len(self.expandable_moves)))
         return len(self.expandable_moves) == 0 and len(self.children) > 0
 
     def select(self):
@@ -100,9 +101,9 @@ class MCTS():
         #selection 
         for search in range(self.num_searches):
             node = root
-            print("Search: " + str(search))
+            if search % 1000 == 0:
+                print("Searches Done: " + str(search))
             # DEBUG
-            #print("IS FULLY EXPANDED?: " + str(node.is_fully_expanded()))
             while node.is_fully_expanded():
                 node = node.select()
             
@@ -117,13 +118,15 @@ class MCTS():
         action_probs = {}
         for child in root.children:
             action_probs[child.action_taken] = child.visit_count
+
+        print("ACTION PROBS: " + str(action_probs))
         return action_probs
 
 a = input("Attaxx or Go? (A/G): ")
 mode = "Attaxx" if a == "A" else "Go"
 
 if mode == "Go":
-    args_go = [5, 5, 5.5]  # size, komi
+    args_go = [5, 5.5]  # size, komi
     game = Go(args_go)
 else:
     game = Attaxx([5, 5])
@@ -151,9 +154,9 @@ while True:
                 a, b = tuple(int(x.strip()) for x in input().split(' '))
                 action = (a, b)
             if game.is_valid_move(state, action, player):
-                game.get_next_state(state, action, player)
+                state = game.get_next_state(state, action, player)
                 player = - player
-                winner, win = game.check_win_and_over(state)
+                winner, win = game.check_win_and_over(state, action)
                 if win:
                     game.print_board(state)
                     print(f"player {winner} wins")
@@ -172,11 +175,11 @@ while True:
             if mcts_prob[action] >= mcts_prob[action_selected]:
                 #print("ACTION SELECTED: " + str(action))
                 action_selected = action
-        #print("ACTION SELECTED: " + str(action_selected))
+        print("ACTION SELECTED AFTERWARDS: " + str(action_selected))
         if game.is_valid_move(state, action_selected, player):
-                game.get_next_state(state, action_selected, player)
+                state = game.get_next_state(state, action_selected, player)
                 player = - player
-                winner, win = game.check_win_and_over(state)
+                winner, win = game.check_win_and_over(state, action)
                 if win:
                     game.print_board(state)
                     print(f"player {winner} wins")
