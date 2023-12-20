@@ -208,16 +208,16 @@ class Go:
 
                         #if the move is a "ko" move but causes the capture of stones, then it is not allowed, unless it is the second move, in which case it is dealt afterwards
                         if self.seki_count == 0:
-                            print("Seki Found")
-                            #returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
+                            # print("Seki Found")
+                            # returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
                             check = True
                             self.seki_count = 1
                             continue
 
                     #restore the board
                     state = self.restore_board(state)
-        print("Seki Count: " + str(self.seki_count))
-        print("Captures: " + str(check))
+        # print("Seki Count: " + str(self.seki_count))
+        # print("Captures: " + str(check))
         return check, state
 
     def change_player(self, player: int) -> int:
@@ -253,6 +253,8 @@ class Go:
         # Description:
         Checks if a move is valid.
         If a move repeats a previous state or commits suicide (gets captured without capturing back), it is not valid.
+        
+        A print will follow explaining the invalid move in case it exists.
 
         # Returns:
         A boolean confirming the validity of the move.
@@ -260,6 +262,14 @@ class Go:
 
         statecopy = numpy.copy(state)
         a, b = action
+
+        if a >= self.board_size or a < -1 or b < -1 or b >= self.board_size:
+            print("Invalid Move: Out of Bounds")
+            return False
+
+        if state[a][b] != self.EMPTY:
+            print("Invalid Move: Space Occupied")
+            return False 
         statecopy = self.set_stone(a,b, statecopy, player)
 
         statecopy = self.captures(statecopy, 3 - player)[1]
@@ -415,11 +425,12 @@ args = [9, 5.5]
 go = Go(args)
 state = go.get_initial_state()
 go.draw_board(state)
+
 player = 1
+print("Player: " + str(player))
+print("Input: ")
 
 while True:
-    print("Player: " + str(player))
-    print("Input: ")
     a, b = tuple(int(x.strip()) for x in input().split(' '))
     action = (a, b)
     if go.is_valid_move(state, action, player):
@@ -429,6 +440,6 @@ while True:
             print("Winner: " + str(winner))
             break
         player = go.change_player(player)
-        
-
-    go.draw_board(state)
+        go.draw_board(state)
+        print("Player: " + str(player))
+        print("Input: ")
