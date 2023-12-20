@@ -115,6 +115,7 @@ class Go:
         self.args = args
         self.x_dim = args[0]
         self.y_dim = args[1]
+        self.action_size = self.x_dim * self.y_dim
         self.komi = args[2]
         self.state = self.get_initial_state()
         self.player = 1
@@ -323,3 +324,10 @@ class Go:
                 elif str(state[i][j]) == "-1":
                     mat[i][j] = -1
         return mat
+
+    def get_encoded_state(self, state):
+        encoded_state = np.stack(
+            (state == -1, state == 0, state == 1)
+        ).astype(np.float32)
+        
+        return encoded_state

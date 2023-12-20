@@ -133,3 +133,10 @@ class Attaxx:
             for j in range(len(state[0])):
                 print(f"{str(state[i][j]):2}", end=" ")
             print()
+
+    def get_encoded_state(self, state):
+        encoded_state = np.stack(
+            (state == -1, state == 0, state == 1)
+        ).astype(np.float32)
+        
+        return encoded_state
