@@ -65,9 +65,6 @@ if __name__ == '__main__':
     if LOAD:
         model.load_state_dict(torch.load(f'Models/{game}/model.pt', map_location=device))
         optimizer.load_state_dict(torch.load(f'Models/{game}/optimizer.pt', map_location=device))
-    else:
-        if not os.path.exists(f'Models/{GAME}'):
-            os.mkdir(f'Models/{GAME}')
 
     alphaZero = AlphaZero(model, optimizer, game, args)
     alphaZero.learn()

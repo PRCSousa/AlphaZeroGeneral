@@ -279,24 +279,6 @@ class Go():
 
         return black_points - white_points
 
-    def check_win_and_over(self, state: list, action: tuple) -> tuple[int, bool]:
-        '''
-        # Description:
-        Checks if the game is over and if there is a winner.
-
-        # Returns:
-        A tuple containing the winner and a boolean indicating if the game is over.
-        '''
-
-        if self.check_board_full(state):
-            points = self.check_score(state)
-            if points > 0:
-                return 1, True
-            else:
-                return -1, True
-        
-        return 0, False
-
     def get_opponent(self, player):
         return -player
     
