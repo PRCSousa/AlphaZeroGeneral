@@ -1,5 +1,5 @@
 import os
-import numpy
+import numpy as np
 
 class Go:
 
@@ -268,7 +268,7 @@ class Go:
         A boolean confirming the validity of the move.
         '''
 
-        statecopy = numpy.copy(state)
+        statecopy = np.copy(state)
         a, b = action
 
         if a >= self.board_size or a < -1 or b < -1 or b >= self.board_size:
@@ -287,14 +287,9 @@ class Go:
             # print("Invalid Move: Repeated State")
             return False
 
-        if self.seki_count == 1:
-            if str_board in self.history:
-                # print("Invalid Move: Repeated State")
-                return False
-        else:
-            if self.captures(statecopy, -player)[0] == False and self.captures(statecopy, player)[0] == True:
-                # print("Invalid Move: Suicide")
-                return False
+        if self.captures(statecopy, -player)[0] == False and self.captures(statecopy, player)[0] == True:
+            # print("Invalid Move: Suicide")
+            return False
             
         return True
     
@@ -330,6 +325,7 @@ class Go:
         a, b = action
         # checking if the move is part of is the secondary move to a ko fight
         state = self.set_stone(a, b, state, player)
+        print(state)
         state = self.captures(state, -player)[1]
         self.save_state(state)
         return state
@@ -417,20 +413,14 @@ class Go:
     def get_valid_moves(self,state: list, player: int) -> set[tuple[int, int]]:
         '''
         # Description:
-        Gets the valid moves for a given state.
+        Gets the valid moves for a given state, including the skip move.
 
         # Returns:
         A set containing the valid moves.
         '''
-        possible_moves = set()
 
-        for i in range(len(state)):
-            for j in range(len(state)):
-                action = (i, j)
-                if self.is_valid_move(state, action, player):
-                    possible_moves.add(action)
-        
-        return possible_moves
+        state = np.array(state)
+        return (state.reshape(-1) == 0).astype(np.uint8)
     
     def check_available_moves(self, state: list, player: int) -> bool:
         '''
@@ -446,32 +436,47 @@ class Go:
                 if self.is_valid_move(state, action, player):
                     return True
         return False
+    
+    def get_encoded_state(self, state):
+        layer_1 = np.where(np.array(state) == -1, 1, 0)
+        layer_2 = np.where(np.array(state) == 0, 1, 0)
+        layer_3 = np.where(np.array(state) == 1, 1, 0)
+
+        result = np.stack([layer_1, layer_2, layer_3])
+
+        return result
+    
+    def change_perspective(self, state, player):
+        return state * player
+    
+    def get_action_from_index(self, index):
+        return index // self.board_size, index % self.board_size
 
 # Default Go Runtime
 
 
-args = [9, 5.5]
+# args = [9, 5.5]
 
-go = Go(args)
-state = go.get_initial_state()
-go.print_board(state)
+# go = Go(args)
+# state = go.get_initial_state()
+# go.print_board(state)
 
-player = 1
-print("Player: " + str(player))
-print("Input: ")
+# player = 1
+# print("Player: " + str(player))
+# print("Input: ")
 
-while True:
-    a, b = tuple(int(x.strip()) for x in input().split(' '))
-    action = (a, b)
-    if go.is_valid_move(state, action, player):
-        state = go.get_next_state(state, action, player)
-        winner, win = go.check_win_and_over(state, action)
-        if win:
-            print("Winner: " + str(winner))
-            break
-        player = go.change_player(player)
-        go.print_board(state)
-        print("Player: " + str(player))
-        print("Input: ")
+# while True:
+#     a, b = tuple(int(x.strip()) for x in input().split(' '))
+#     action = (a, b)
+#     if go.is_valid_move(state, action, player):
+#         state = go.get_next_state(state, action, player)
+#         winner, win = go.check_win_and_over(state, action)
+#         if win:
+#             print("Winner: " + str(winner))
+#             break
+#         player = go.change_player(player)
+#         go.print_board(state)
+#         print("Player: " + str(player))
+#         print("Input: ")
 
         
