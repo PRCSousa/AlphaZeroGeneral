@@ -1,33 +1,13 @@
 # Plano
 
-## Week 1 / 2
+## To Do
 
-Ver o vídeo fixe todo do rapaz.
-
-☑ Go
-☑ Attax
-
-Começar a pensar no AlphaZero
-
-## Week 3 / 4
-
-AlphaZero: MCTS
-Fazer interface gráfica com pygame
-
-## Week 5
-
-Terminar o AlphaZero ASAP
-Lidar com bugs
-
-## Week 6
-
-Provavelmente ainda lidar com bugs
-
-## Week 7 / 8
-
-Treinar os modelos para os jogos.
-Apresentação?
-
-## Week 9
-
-Feliz Natal e Feliz Ano Novo !
+- organize repo
+- adapt attaxx to fit alpha zero standards
+- melhorar cenas no Go como o calculo de scores e etc
+- parallel learning
+- automatize testing
+- melhorar implementaçao alphazero de alguma forma
+- tweak alphazero parameters
+- treinar os modelos de cada jogo
+- integrate with graphics and server
