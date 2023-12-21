@@ -1,7 +1,7 @@
 import numpy as np
 import math
 from attax_game import Attaxx
-from go import Go
+from oldgo import Go
 #from matplotlib import pyplot
 from copy import deepcopy
 
