@@ -2,10 +2,13 @@ import torch
 from torch.optim import Adam
 import random
 import numpy as np
+
 from go import Go
-# from attax_game import Attaxx
-from alphaZeroParallel import ResNet
-from alphaZeroParallel import AlphaZero
+from attaxx import Attaxx
+
+from AlphaZero.alphaZero import ResNet
+from AlphaZero.alphaZero import AlphaZero
+
 import os
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
