@@ -10,10 +10,10 @@ class Go():
     LIBERTY = 8
 
     def __init__(self):
-        self.row_count = 5
-        self.column_count = 5
+        self.row_count = 9
+        self.column_count = 9
         self.komi = 6.5
-        self.action_size = self.row_count * self.column_count
+        self.action_size = self.row_count * self.column_count + 1
         self.liberties = []
         self.block = []
         self.seki_count = 0
@@ -196,8 +196,12 @@ class Go():
         # Returns:
         New state with everything updated.
         '''
+        if action == self.row_count * self.column_count:
+            return state # pass move
+
         a = action // self.row_count
         b = action % self.column_count
+
         # checking if the move is part of is the secondary move to a ko fight
         state = self.set_stone(a, b, state, player)
         # print(state)
@@ -210,7 +214,9 @@ class Go():
         Returns a matrix with the valid moves for the current player.
         '''
         state = np.array(state)
-        return (state.reshape(-1) == 0).astype(np.uint8)
+        state = state.reshape(-1) == 0
+        state = np.concatenate([state, [1]])
+        return (state).astype(np.uint8)
 
     def get_value_and_terminated(self, state, action):
         '''
