@@ -298,5 +298,5 @@ class AlphaZero:
             for epoch in trange(self.args['num_epochs']):
                 self.train(memory)
             
-            torch.save(self.model.state_dict(), f"Models/{self.args['game']}/model_{iteration}.pt")
-            torch.save(self.optimizer.state_dict(), f"Models/{self.args['game']}/optimizer_{iteration}.pt")
+            torch.save(self.model.state_dict(), f"AlphaZero/Models/{self.args['game']}/model_{iteration}.pt")
+            torch.save(self.optimizer.state_dict(), f"AlphaZero/Models/{self.args['game']}/optimizer_{iteration}.pt")

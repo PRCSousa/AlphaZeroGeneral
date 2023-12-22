@@ -3,11 +3,12 @@ from torch.optim import Adam
 import random
 import numpy as np
 
-from go import Go
-from attaxx import Attaxx
+from Go.go import Go
+from Attaxx.attaxx import Attaxx
 
 from AlphaZero.alphaZero import ResNet
 from AlphaZero.alphaZero import AlphaZero
+from AlphaZero.alphaZero import MCTS
 
 import os
 
@@ -20,11 +21,22 @@ np.random.seed(0)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
-GAME = 'Go'
-LOAD = False
-PARALLEL = True
-
 if __name__ == '__main__':
+
+    GAME = input("Game: (Go/Attaxx) ")
+
+    LOAD = input("Load: (True/False) ")
+    if LOAD == 'True':
+        LOAD = True
+    else:
+        LOAD = False
+
+    TEST = input("Test: (True/False) ")
+    if TEST == 'True':
+        TEST = True	
+    else:
+        TEST = False
+
     if GAME == 'Go':
         args = {
             'game': 'Go',
@@ -66,8 +78,76 @@ if __name__ == '__main__':
             # optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
     if LOAD:
-        model.load_state_dict(torch.load(f'Models/{game}/model.pt', map_location=device))
-        optimizer.load_state_dict(torch.load(f'Models/{game}/optimizer.pt', map_location=device))
+        model.load_state_dict(torch.load(f'AlphaZero/Models/{game}/model.pt', map_location=device))
+        optimizer.load_state_dict(torch.load(f'AlphaZero/Models/{game}/optimizer.pt', map_location=device))
 
-    alphaZero = AlphaZero(model, optimizer, game, args)
-    alphaZero.learn()
+    if not TEST:
+        alphaZero = AlphaZero(model, optimizer, game, args)
+        alphaZero.learn()
+    else:
+        if GAME == 'Go':
+            game = Go()
+            name = input("Model File Name: ")
+
+            model.load_state_dict(torch.load('AlphaZero/Models/Go/' + name + '.pt'))
+            mcts = MCTS(model, game, args)
+            state = game.get_initial_state()
+            game.print_board(state)
+
+            player = 1
+
+            while True:
+                if player == 1:
+                    a, b = tuple(int(x.strip()) for x in input().split(' '))
+                    action = a * 5 + b
+                    state = game.get_next_state(state, action, player)
+                else:
+                    neut = game.change_perspective(state, player)
+                    action = mcts.search(neut)
+                    action = np.argmax(action)
+                    state = game.get_next_state(state, action, player)
+
+                winner, win = game.get_value_and_terminated(state, action)
+                if win:
+                    game.print_board(state)
+                    print(f"player {winner} wins")
+                    exit()
+
+                player = - player
+                game.print_board(state)
+            
+        elif GAME == 'Attaxx':
+            game = Attaxx()
+            name = input("Model File Name: ")
+
+            model.load_state_dict(torch.load('AlphaZero/Models/Attaxx/' + name + '.pt'))
+
+            mcts = MCTS(model, game, args)
+            state = game.get_initial_state()
+            game.print_board(state)
+
+            player = 1
+
+            while True:
+                if player == 1:
+                    
+                    # input do player
+
+                    state = game.get_next_state(state, action, player)
+                else:
+                    neut = game.change_perspective(state, player)
+
+                    action = mcts.search(neut)
+
+                    action = np.argmax(action)
+
+                    state = game.get_next_state(state, action, player)
+
+                winner, win = game.get_value_and_terminated(state, action)
+                if win:
+                    game.print_board(state)
+                    print(f"player {winner} wins")
+                    exit()
+
+                player = - player
+                game.print_board(state)
