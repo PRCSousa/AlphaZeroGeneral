@@ -135,10 +135,11 @@ class Go():
             for i in range(len(state)):
                 print(f"{i:2}|", end=" ")
                 for j in range(len(state[0])):
-                    print(f"{str(state[i][j]):2}", end=" ")
+                    print(f"{str(int(state[i][j])):2}", end=" ")
                 print()
+
     
-    def captures(self, state: list,player: int) -> tuple[bool, list]:
+    def captures(self, state: list,player: int, a: int, b: int) -> tuple[bool, list]:
         '''
         # Description:
         Checks if a move causes a capture of stones of the player passed as an argument.
@@ -149,37 +150,49 @@ class Go():
         '''
         check = False
 
+        neighbours = []
+        #get neighbours
+        if a-1 >= 0:
+            neighbours.append((a-1,b))
+        if b+1 < self.column_count:
+            neighbours.append((a,b+1))
+        if a+1 < self.row_count:
+            neighbours.append((a+1,b))
+        if b-1 >= 0:
+            neighbours.append((a,b-1))
+    
+
         #loop over the board squares
-        for y in range(len(state)):
-            for x in range(len(state)):
-                
-                #init piece
-                piece = state[y][x]
+        for i in range(len(neighbours)):
+            x = neighbours[i][0]
+            y = neighbours[i][1]
+            #init piece
+            piece = state[y][x]
 
-                #if stone belongs to given colour
-                if piece == player:
+            #if stone belongs to given colour
+            if piece == player:
                     
-                    #count liberties
-                    liberties = []
-                    block = []
-                    liberties, block = self.count(x, y, state, player, liberties, block)
+                #count liberties
+                liberties = []
+                block = []
+                liberties, block = self.count(x, y, state, player, liberties, block)
 
-                    #if no liberties remove the stones
-                    if len(liberties) == 0: 
+                #if no liberties remove the stones
+                if len(liberties) == 0: 
                         #clear block
 
-                        state = self.clear_block(block, state)
+                    state = self.clear_block(block, state)
 
-                        #if the move is a "ko" move but causes the capture of stones, then it is not allowed, unless it is the second move, in which case it is dealt afterwards
-                        if self.seki_count == 0:
-                            # print("Seki Found")
-                            # returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
-                            check = True
-                            self.seki_count = 1
-                            continue
+                    #if the move is a "ko" move but causes the capture of stones, then it is not allowed, unless it is the second move, in which case it is dealt afterwards
+                    if self.seki_count == 0:
+                        # print("Seki Found")
+                        # returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
+                        check = True
+                        self.seki_count = 1
+                        continue
 
                     #restore the board
-                    state = self.restore_board(state)
+                state = self.restore_board(state)
         # print("Seki Count: " + str(self.seki_count))
         # print("Captures: " + str(check))
         return check, state
@@ -208,31 +221,62 @@ class Go():
         state = self.captures(state, -player)[1]
         return state
     
-    def get_valid_moves(self, state):
+    def is_valid_move(self, state: list, action: tuple, player: int) -> bool:
+        '''
+        # Description:
+        Checks if a move is valid.
+        If a move repeats a previous state or commits suicide (gets captured without capturing back), it is not valid.
+        
+        A print will follow explaining the invalid move in case it exists.
+
+        # Returns:
+        A boolean confirming the validity of the move.
+        '''
+
+        a = action[0]
+        b = action[1]
+
+
+        statecopy = np.copy(state).astype(np.uint8)
+
+        if state[a][b] != self.EMPTY:
+            return False 
+        statecopy = self.set_stone(a,b, statecopy, player)
+
+        statecopy = self.captures(statecopy, 3 - player)[1]
+
+        if self.captures(statecopy, 3-player)[0] == False and self.captures(statecopy, player)[0] == True:
+            # print("Invalid Move: Suicide")
+            return False
+            
+        return True
+    
+    def get_valid_moves(self, state, player):
         '''
         # Description:
         Returns a matrix with the valid moves for the current player.
         '''
-        state = np.array(state)
-        state = state.reshape(-1) == 0
-        state = np.concatenate([state, [1]])
-        return (state).astype(np.uint8)
+        newstate = np.zeros((self.row_count, self.column_count))
+        for a in range(0, self.column_count):
+            for b in range(0, self.row_count):
+                if self.is_valid_move(state, (a,b), player):
+                    newstate[a][b] = 1
+        
+        newstate = newstate.reshape(-1)
+        newstate = np.concatenate([newstate, [1]])
+        return (newstate).astype(np.uint8)
 
     def get_value_and_terminated(self, state, action):
         '''
         # Description:
         Returns the value of the state and if the game is over.
         '''
-        black_count = np.sum(state == self.BLACK)
-        white_count = np.sum(state == self.WHITE)
+        value = self.check_score(state)
 
+        if self.check_board_full(state):
+            return value, True
 
-        if black_count > white_count + self.komi:
-            return 1, True
-        elif white_count > black_count + self.komi:
-            return -1, True
-        else:
-            return 0, False
+        return value, False
         
     def check_win(self, state, action):
         '''

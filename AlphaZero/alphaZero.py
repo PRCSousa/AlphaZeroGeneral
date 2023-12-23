@@ -122,7 +122,7 @@ class MCTS:
         self.args = args
         
     @torch.no_grad()
-    def search(self, state):
+    def search(self, state, player):
         root = Node(self.game, self.args, state, visit_count=1)
         
         policy, _ = self.model(
@@ -132,14 +132,14 @@ class MCTS:
         policy = (1 - self.args['dirichlet_epsilon']) * policy + self.args['dirichlet_epsilon'] \
             * np.random.dirichlet([self.args['dirichlet_alpha']] * self.game.action_size)
         
-        valid_moves = self.game.get_valid_moves(state)
+        valid_moves = self.game.get_valid_moves(state, player)
         policy *= valid_moves
         policy /= np.sum(policy)
         root.expand(policy)
         
         for search in range(self.args['num_mcts_searches']):
             node = root
-            
+            # print("A")
             while node.is_expanded():
                 node = node.select()
                 
@@ -150,14 +150,14 @@ class MCTS:
                 policy, value = self.model(torch.tensor(self.game.get_encoded_state(node.state), device=self.model.device).unsqueeze(0)
                 )
                 policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
-                valid_moves = self.game.get_valid_moves(node.state)
+                valid_moves = self.game.get_valid_moves(node.state, player)
                 policy *= valid_moves
                 policy /= np.sum(policy)
                 
                 value = value.item()
                 
                 node.expand(policy)
-                
+            # print("B")
             node.backpropagate(value)    
             
         action_probs = np.zeros(self.game.action_size)
@@ -178,10 +178,11 @@ class AlphaZero:
         memory = []
         player = 1
         state = self.game.get_initial_state()
-        
+        iter = 0
         while True:
+
             neutral_state = self.game.change_perspective(state, player)
-            action_probs = self.mcts.search(neutral_state)
+            action_probs = self.mcts.search(neutral_state, player)
             
             memory.append((neutral_state, action_probs, player))
             
@@ -193,7 +194,7 @@ class AlphaZero:
             
             value, is_terminal = self.game.get_value_and_terminated(state, action)
             
-            if is_terminal:
+            if is_terminal or iter >= self.args['max_moves']:
                 returnMemory = []
                 for hist_neutral_state, hist_action_probs, hist_player in memory:
                     hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
@@ -203,7 +204,7 @@ class AlphaZero:
                         hist_outcome
                     ))
                 return returnMemory
-            
+            iter += 1
             player = self.game.get_opponent(player)
                 
     def train(self, memory):
@@ -235,6 +236,7 @@ class AlphaZero:
             print(f"Iteration {iteration + 1}")
             for selfPlay_iteration in trange(self.args['num_selfPlay_iterations']):
                 memory += self.selfPlay()
+
                 
             self.model.train()
             for epoch in trange(self.args['num_epochs']):

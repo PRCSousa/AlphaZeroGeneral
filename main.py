@@ -48,9 +48,9 @@ if __name__ == '__main__':
             'game': 'Go',
             'num_iterations': 20,             # number of highest level iterations
             'num_selfPlay_iterations': 20,   # number of self-play games to play within each iteration
-            'num_parallel_games': 100,        # number of games to play in parallel
-            'num_mcts_searches': 60,         # number of mcts simulations when selecting a move within self-play
-            'num_epochs': 5,                  # number of epochs for training on self-play data for each iteration
+            'max_moves': 20,                 # maximum number of moves before a game is terminated
+            'num_mcts_searches': 50,         # number of mcts simulations when selecting a move within self-play
+            'num_epochs': 20,                  # number of epochs for training on self-play data for each iteration
             'batch_size': 2,                # batch size for training, HAS to be smaller than num_selfPlay_iterations
             'temperature': 1.25,              # temperature for the softmax selection of moves
             'C': 2,                           # the value of the constant policy
@@ -69,7 +69,7 @@ if __name__ == '__main__':
             'game': 'Attaxx',
             'num_iterations': 8,              # number of highest level iterations
             'num_selfPlay_iterations': 400,   # number of self-play games to play within each iteration
-            'num_parallel_games': 100,        # number of games to play in parallel
+            'max_moves': 100,                 # maximum number of moves before a game is terminated
             'num_mcts_searches': 60,          # number of mcts simulations when selecting a move within self-play
             'num_epochs': 4,                  # number of epochs for training on self-play data for each iteration
             'batch_size': 40,                 # batch size for training
@@ -109,13 +109,15 @@ if __name__ == '__main__':
 
             while True:
                 if player == 1:
-                    a, b = tuple(int(x.strip()) for x in input().split(' '))
-                    action = a * 5 + b
+                    a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
+                    print("\n")
+                    action = a * 9 + b
                     state = game.get_next_state(state, action, player)
                 else:
                     neut = game.change_perspective(state, player)
-                    action = mcts.search(neut)
+                    action = mcts.search(neut, player)
                     action = np.argmax(action)
+                    print(f"\nAlphaZero Action: {action % 9} {action // 9}\n")
                     state = game.get_next_state(state, action, player)
 
                 winner, win = game.get_value_and_terminated(state, action)
@@ -148,7 +150,7 @@ if __name__ == '__main__':
                 else:
                     neut = game.change_perspective(state, player)
 
-                    action = mcts.search(neut)
+                    action = mcts.search(neut, player)
 
                     action = np.argmax(action)
 
