@@ -137,9 +137,8 @@ class Go():
                 for j in range(len(state[0])):
                     print(f"{str(int(state[i][j])):2}", end=" ")
                 print()
-
     
-    def captures(self, state: list,player: int, a: int, b: int) -> tuple[bool, list]:
+    def captures(self, state: list,player: int) -> tuple[bool, list]:
         '''
         # Description:
         Checks if a move causes a capture of stones of the player passed as an argument.
@@ -150,49 +149,37 @@ class Go():
         '''
         check = False
 
-        neighbours = []
-        #get neighbours
-        if a-1 >= 0:
-            neighbours.append((a-1,b))
-        if b+1 < self.column_count:
-            neighbours.append((a,b+1))
-        if a+1 < self.row_count:
-            neighbours.append((a+1,b))
-        if b-1 >= 0:
-            neighbours.append((a,b-1))
-    
-
         #loop over the board squares
-        for i in range(len(neighbours)):
-            x = neighbours[i][0]
-            y = neighbours[i][1]
-            #init piece
-            piece = state[y][x]
+        for y in range(len(state)):
+            for x in range(len(state)):
+                
+                #init piece
+                piece = state[y][x]
 
-            #if stone belongs to given colour
-            if piece == player:
+                #if stone belongs to given colour
+                if piece == player:
                     
-                #count liberties
-                liberties = []
-                block = []
-                liberties, block = self.count(x, y, state, player, liberties, block)
+                    #count liberties
+                    liberties = []
+                    block = []
+                    liberties, block = self.count(x, y, state, player, liberties, block)
 
-                #if no liberties remove the stones
-                if len(liberties) == 0: 
+                    #if no liberties remove the stones
+                    if len(liberties) == 0: 
                         #clear block
 
-                    state = self.clear_block(block, state)
+                        state = self.clear_block(block, state)
 
-                    #if the move is a "ko" move but causes the capture of stones, then it is not allowed, unless it is the second move, in which case it is dealt afterwards
-                    if self.seki_count == 0:
-                        # print("Seki Found")
-                        # returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
-                        check = True
-                        self.seki_count = 1
-                        continue
+                        #if the move is a "ko" move but causes the capture of stones, then it is not allowed, unless it is the second move, in which case it is dealt afterwards
+                        if self.seki_count == 0:
+                            # print("Seki Found")
+                            # returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
+                            check = True
+                            self.seki_count = 1
+                            continue
 
                     #restore the board
-                state = self.restore_board(state)
+                    state = self.restore_board(state)
         # print("Seki Count: " + str(self.seki_count))
         # print("Captures: " + str(check))
         return check, state
