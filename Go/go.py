@@ -138,7 +138,7 @@ class Go():
                     print(f"{str(int(state[i][j])):2}", end=" ")
                 print()
     
-    def captures(self, state: list,player: int) -> tuple[bool, list]:
+    def captures(self, state: list,player: int, a:int, b:int) -> tuple[bool, list]:
         '''
         # Description:
         Checks if a move causes a capture of stones of the player passed as an argument.
@@ -148,38 +148,45 @@ class Go():
         A tuple containing a boolean indicating if a capture has been made and the board with the captured stones removed.
         '''
         check = False
+        neighbours = []
+        if(a > 0): neighbours.append((a-1, b))
+        if(a < self.column_count - 1): neighbours.append((a+1, b))
+        if(b > 0): neighbours.append((a, b - 1))
+        if(b < self.row_count - 1): neighbours.append((a, b+1))
+
+        print(neighbours)
 
         #loop over the board squares
-        for y in range(len(state)):
-            for x in range(len(state)):
-                
+        for pos in neighbours:
+
+            x = pos[0]
+            y = pos[1]    
                 #init piece
-                piece = state[y][x]
+            piece = state[x][y]
 
                 #if stone belongs to given colour
-                if piece == player:
+            if piece == player:
                     
                     #count liberties
-                    liberties = []
-                    block = []
-                    liberties, block = self.count(x, y, state, player, liberties, block)
+                liberties = []
+                block = []
+                liberties, block = self.count(x, y, state, player, liberties, block)
 
-                    #if no liberties remove the stones
-                    if len(liberties) == 0: 
-                        #clear block
+                #if no liberties remove the stones
+                if len(liberties) == 0: 
+                    #clear block
 
-                        state = self.clear_block(block, state)
+                    state = self.clear_block(block, state)
 
                         #if the move is a "ko" move but causes the capture of stones, then it is not allowed, unless it is the second move, in which case it is dealt afterwards
-                        if self.seki_count == 0:
-                            # print("Seki Found")
-                            # returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
-                            check = True
-                            self.seki_count = 1
-                            continue
-
-                    #restore the board
-                    state = self.restore_board(state)
+                    if self.seki_count == 0:
+                        # print("Seki Found")
+                        # returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
+                        check = True
+                        self.seki_count = 1
+                        continue
+                #restore the board
+                state = self.restore_board(state)
         # print("Seki Count: " + str(self.seki_count))
         # print("Captures: " + str(check))
         return check, state
@@ -205,7 +212,7 @@ class Go():
         # checking if the move is part of is the secondary move to a ko fight
         state = self.set_stone(a, b, state, player)
         # print(state)
-        state = self.captures(state, -player)[1]
+        state = self.captures(state, -player, a, b)[1]
         return state
     
     def is_valid_move(self, state: list, action: tuple, player: int) -> bool:
@@ -230,9 +237,9 @@ class Go():
             return False 
         statecopy = self.set_stone(a,b, statecopy, player)
 
-        statecopy = self.captures(statecopy, 3 - player)[1]
+        statecopy = self.captures(statecopy, 3 - player, a, b)[1]
 
-        if self.captures(statecopy, 3-player)[0] == False and self.captures(statecopy, player)[0] == True:
+        if self.captures(statecopy, 3-player, a, b)[0] == False and self.captures(statecopy, player, a , b)[0] == True:
             # print("Invalid Move: Suicide")
             return False
             
@@ -333,3 +340,29 @@ class Go():
     
     def change_perspective(self, state, player):
         return state * player
+    
+
+
+# Runtime
+    
+game = Go()
+state = game.get_initial_state()
+game.print_board(state)
+
+player = 1
+
+while True:
+    a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
+    print("\n")
+    action = a * 9 + b
+    state = game.get_next_state(state, action, player)
+
+    winner, win = game.get_value_and_terminated(state, action)
+    if win:
+
+        game.print_board(state)
+        print(f"player {winner} wins")
+        exit()
+
+    player = - player
+    game.print_board(state)
