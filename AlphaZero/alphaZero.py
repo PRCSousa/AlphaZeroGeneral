@@ -173,6 +173,36 @@ class AlphaZero:
         self.game = game
         self.args = args
         self.mcts = MCTS(model, game, args)
+
+    def augment_state(self, state):
+
+        augmented_states = []
+        
+        # Original state
+        augmented_states.append(state)
+        
+        # Rotate 90 degrees clockwise
+        augmented_states.append(np.rot90(state, k=1))
+        
+        # Rotate 180 degrees clockwise
+        augmented_states.append(np.rot90(state, k=2))
+        
+        # Rotate 270 degrees clockwise
+        augmented_states.append(np.rot90(state, k=3))
+        
+        # Flip horizontally
+        augmented_states.append(np.fliplr(state))
+        
+        # Flip vertically
+        augmented_states.append(np.flipud(state))
+        
+        # Rotate 90 degrees clockwise and flip horizontally
+        augmented_states.append(np.rot90(np.fliplr(state), k=1))
+        
+        # Rotate 90 degrees clockwise and flip vertically
+        augmented_states.append(np.rot90(np.flipud(state), k=1))
+        
+        return augmented_states
         
     def selfPlay(self):
         memory = []
@@ -198,11 +228,11 @@ class AlphaZero:
                 returnMemory = []
                 for hist_neutral_state, hist_action_probs, hist_player in memory:
                     hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
-                    returnMemory.append((
-                        self.game.get_encoded_state(hist_neutral_state),
-                        hist_action_probs,
-                        hist_outcome
-                    ))
+                    augmented_states = self.augment_state(hist_neutral_state)
+
+                    for augmented_state in augmented_states:
+                        returnMemory.append((self.game.get_encoded_state(augmented_state), hist_action_probs, hist_outcome))
+
                 return returnMemory
             iter += 1
             player = self.game.get_opponent(player)

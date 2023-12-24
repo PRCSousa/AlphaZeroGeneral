@@ -345,24 +345,24 @@ class Go():
 
 # Runtime
     
-game = Go()
-state = game.get_initial_state()
-game.print_board(state)
+# game = Go()
+# state = game.get_initial_state()
+# game.print_board(state)
 
-player = 1
+# player = 1
 
-while True:
-    a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
-    print("\n")
-    action = a * 9 + b
-    state = game.get_next_state(state, action, player)
+# while True:
+#     a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
+#     print("\n")
+#     action = a * 9 + b
+#     state = game.get_next_state(state, action, player)
 
-    winner, win = game.get_value_and_terminated(state, action)
-    if win:
+#     winner, win = game.get_value_and_terminated(state, action)
+#     if win:
 
-        game.print_board(state)
-        print(f"player {winner} wins")
-        exit()
+#         game.print_board(state)
+#         print(f"player {winner} wins")
+#         exit()
 
-    player = - player
-    game.print_board(state)
+#     player = - player
+#     game.print_board(state)
