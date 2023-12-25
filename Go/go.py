@@ -154,25 +154,23 @@ class Go():
         if(b > 0): neighbours.append((a, b - 1))
         if(b < self.row_count - 1): neighbours.append((a, b+1))
 
-        print(neighbours)
-
         #loop over the board squares
         for pos in neighbours:
-
+            # print(pos)
             x = pos[0]
             y = pos[1]    
-                #init piece
+            # init piece
             piece = state[x][y]
 
                 #if stone belongs to given colour
             if piece == player:
-                    
-                    #count liberties
+                # print("opponent piece")
+                # count liberties
                 liberties = []
                 block = []
-                liberties, block = self.count(x, y, state, player, liberties, block)
-
-                #if no liberties remove the stones
+                liberties, block = self.count(y, x, state, player, liberties, block)
+                # print("Liberties in count: " + str(len(liberties)))
+                # if no liberties remove the stones
                 if len(liberties) == 0: 
                     #clear block
 
@@ -265,21 +263,43 @@ class Go():
         # Description:
         Returns the value of the state and if the game is over.
         '''
-        value = self.check_score(state)
+        if self.check_board_full(state = state):
+            if self.check_win(state = state, action = action):
+                return 1, True
+            return 0, False
+        return 0, False
 
-        if self.check_board_full(state):
-            return value, True
-
-        return value, False
         
     def check_win(self, state, action):
         '''
         # Description:
-        Checks if the game is over.
+        Checks if the player won the game.
         '''
-        if self.check_board_full(state):
-            return True
+        # print(f"Checking Action: {str(action)}")
+        if action == self.row_count * self.column_count:
+            return False
+        player = state[action // self.row_count][action % self.column_count]
+        # print(f"Coordinates: {action // self.row_count}, {action % self.column_count}")
+
+        black_pieces = 0
+        white_pieces = 0
+        for row in state:
+            for stone in row:
+                if stone == 1:
+                    black_pieces += 1
+                if stone == 2:
+                    white_pieces += 1
+        
+        black_points = black_pieces
+        white_points = white_pieces + self.komi
+
+        if player == 1:
+            if black_points > white_points:
+                return True
+            return False
         else:
+            if white_points > black_points:
+                return True
             return False
         
     def check_board_full(self, state: list) -> bool:
@@ -300,28 +320,6 @@ class Go():
                     return False
                 
         return True
-    
-    def check_score(self, state: list) -> float:
-        '''
-        # Description:
-        Checks the score of the game.
-
-        # Returns:
-        The score of the game, positive if black is winning, negative if white is winning.
-        '''
-        black_pieces = 0
-        white_pieces = 0
-        for row in state:
-            for stone in row:
-                if stone == 1:
-                    black_pieces += 1
-                if stone == 2:
-                    white_pieces += 1
-        
-        black_points = black_pieces
-        white_points = white_pieces + self.komi
-
-        return black_points - white_points
 
     def get_opponent(self, player):
         return -player
@@ -354,6 +352,8 @@ class Go():
 # while True:
 #     a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
 #     print("\n")
+#     if a == -1 and b == -1:
+#         action = game.row_count * game.column_count
 #     action = a * 9 + b
 #     state = game.get_next_state(state, action, player)
 

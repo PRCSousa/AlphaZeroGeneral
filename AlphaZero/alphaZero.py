@@ -208,7 +208,6 @@ class AlphaZero:
         memory = []
         player = 1
         state = self.game.get_initial_state()
-        iter = 0
         while True:
 
             neutral_state = self.game.change_perspective(state, player)
@@ -224,7 +223,7 @@ class AlphaZero:
             
             value, is_terminal = self.game.get_value_and_terminated(state, action)
             
-            if is_terminal or iter >= self.args['max_moves']:
+            if is_terminal:
                 returnMemory = []
                 for hist_neutral_state, hist_action_probs, hist_player in memory:
                     hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
@@ -234,7 +233,7 @@ class AlphaZero:
                         returnMemory.append((self.game.get_encoded_state(augmented_state), hist_action_probs, hist_outcome))
 
                 return returnMemory
-            iter += 1
+
             player = self.game.get_opponent(player)
                 
     def train(self, memory):
