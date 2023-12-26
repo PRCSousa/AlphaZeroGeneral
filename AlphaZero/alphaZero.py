@@ -196,19 +196,9 @@ class MCTS:
                 )
                 policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
                 #print("POLICY:", policy)
-                #print("POLICY:", policy)
                 valid_moves = self.game.get_valid_moves(node.state, player)
                 #print("VALID_MOVES:", valid_moves)
-                #print("VALID_MOVES:", valid_moves)
                 policy *= valid_moves
-                #print("POLICY AFTER *valid_moves:", policy)
-
-                if np.sum(policy) == 0 and self.args["game"] == "Attaxx":
-                    #print("VALID MOVES:", valid_moves)
-                    #self.game.print_board(node.state)
-                    node.state = self.game.change_perspective(node.state, player=-1)
-                    continue
-
                 #print("POLICY AFTER *valid_moves:", policy)
 
                 if np.sum(policy) == 0 and self.args["game"] == "Attaxx":
