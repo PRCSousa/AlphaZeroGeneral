@@ -161,27 +161,3 @@ if __name__ == '__main__':
 
                 player = - player
                 game.print_board(state)
-
-            while True:
-                if player == 1:
-                    
-                    # input do player
-
-                    state = game.get_next_state(state, action, player)
-                else:
-                    neut = game.change_perspective(state, player)
-
-                    action = mcts.search(neut, player)
-
-                    action = np.argmax(action)
-
-                    state = game.get_next_state(state, action, player)
-
-                winner, win = game.get_value_and_terminated(state, action)
-                if win:
-                    game.print_board(state)
-                    print(f"player {winner} wins")
-                    exit()
-
-                player = - player
-                game.print_board(state)
