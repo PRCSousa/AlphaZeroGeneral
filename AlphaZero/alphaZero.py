@@ -185,6 +185,10 @@ class MCTS:
             value, is_terminal = self.game.get_value_and_terminated(node.state, node.action_taken)
             value = self.game.get_opponent_value(value)
             
+            if node.parent is not None:
+                if node.action_taken == self.game.action_size - 1 and node.parent.action_taken == self.game.action_size - 1 and self.args['game'] == 'Go':
+                    is_terminal = True # if the action is pass when the previous action was also pass, end the game
+
             if not is_terminal:
                 policy, value = self.model(torch.tensor(self.game.get_encoded_state(node.state), device=self.model.device).unsqueeze(0)
                 )
@@ -249,6 +253,7 @@ class AlphaZero:
         player = 1
         state = self.game.get_initial_state()
         iter = 0
+        prev_skip = False
         while True:
 
             neutral_state = self.game.change_perspective(state, player)
@@ -259,6 +264,19 @@ class AlphaZero:
             temperature_action_probs = action_probs ** (1 / self.args['temperature'])
             temperature_action_probs /= np.sum(temperature_action_probs)
             action = np.random.choice(self.game.action_size, p=temperature_action_probs)
+            
+            # If its go and the action is pass when the previous action was also pass, end the game
+            if action == self.game.action_size - 1 and self.args['game'] == 'Go' and prev_skip == True:
+                returnMemory = []
+                for hist_neutral_state, hist_action_probs, hist_player in memory:
+                    hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
+                    augmented_states = self.augment_state(hist_neutral_state)
+
+                    for augmented_state in augmented_states:
+                        returnMemory.append((self.game.get_encoded_state(augmented_state), hist_action_probs, hist_outcome))
+                return returnMemory
+            else:
+                prev_skip = True
             
             state = self.game.get_next_state(state, action, player)
             

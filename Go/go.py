@@ -18,7 +18,6 @@ class Go():
         self.block = []
         self.seki_count = 0
         self.seki_liberties = []
-        self.last_pass = False
         
     def get_initial_state(self):
         board = np.zeros((self.row_count, self.column_count))
@@ -264,17 +263,6 @@ class Go():
         # Description:
         Returns the value of the state and if the game is over.
         '''
-        if action == self.row_count * self.column_count:
-            if self.last_pass == True:
-                self.last_pass == False
-                if self.check_win(state = state, action = action):
-                    return 1, True
-                else:
-                    return 0, True
-            self.last_pass = True
-        else:
-            self.last_pass = False
-
 
         if self.check_board_full(state = state):
             if self.check_win(state = state, action = action):
@@ -373,11 +361,10 @@ class Go():
 #     state = game.get_next_state(state, action, player)
 
 #     winner, win = game.get_value_and_terminated(state, action)
-#     print(game.last_pass)
 #     if win:
 
 #         game.print_board(state)
-#         print(f"player {player} wins")
+#         print(f"player {winner} wins")
 #         exit()
 
 #     player = - player
