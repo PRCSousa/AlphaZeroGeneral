@@ -33,3 +33,14 @@ Depois de optimizar o código, o self-play ficou ~= 10x mais rápido, adicionei 
 - 'num_mcts_searches': 100
 - 'num_epochs': 200
 - 'batch_size': 8
+
+## Modelo 4 | Go20_10_200_64
+
+- 'num_iterations': 20
+- 'num_selfPlay_iterations': 10
+- 'num_mcts_searches': 100
+- 'num_epochs': 200
+- 'batch_size': 8
+
+O modelo rapidamente converge para dar skip sempre, implementei finalmente a regra que se ambos skipparem, o jogo acaba, para ver se isto não acontece. Melhor modelo foi o primeiro mesmo...
+
