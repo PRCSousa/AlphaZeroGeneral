@@ -2,21 +2,21 @@ import numpy as np
 
 class Attaxx:
     def __init__(self, args):
-        self.x_dim = args[0]
-        self.y_dim = args[1]
-        self.action_size = self.x_dim * self.y_dim
+        self.column_count = args[0]
+        self.row_count = args[1]
+        self.action_size = self.column_count * self.row_count
     
     def get_initial_state(self):
-        state = np.zeros((self.x_dim, self.y_dim))
+        state = np.zeros((self.column_count, self.row_count))
         state[0][0] = 1
-        state[self.x_dim-1][self.y_dim-1] = 1
-        state[0][self.x_dim-1] = -1
-        state[self.y_dim-1][0] = -1
+        state[self.column_count-1][self.row_count-1] = 1
+        state[0][self.column_count-1] = -1
+        state[self.row_count-1][0] = -1
         return state
-
+    
+    
     def get_next_state(self, state, action, player):
         a, b, a1, b1 = action
-        # print(a, b, a1, b1)
         if abs(a-a1)==2 or abs(b-b1)==2:
             state[a][b] = 0
             state[a1][b1] = player
@@ -45,11 +45,11 @@ class Attaxx:
                 continue
 
     def check_available_moves(self, state, player):
-        for i in range(self.x_dim):
-            for j in range(self.y_dim):
+        for i in range(self.column_count):
+            for j in range(self.row_count):
                 if state[i][j] == player:
-                    for a in range(self.x_dim):
-                        for b in range(self.y_dim):
+                    for a in range(self.column_count):
+                        for b in range(self.row_count):
                             action = (i, j, a, b)
                             if self.is_valid_move(state, action, player):
                                 return True
@@ -59,11 +59,12 @@ class Attaxx:
 
         possible_moves = set()
 
-        for i in range(self.x_dim):
-            for j in range(self.y_dim):
+        for i in range(self.column_count):
+            for j in range(self.row_count):
                 state[i][j] = int(state[i][j])
                 if state[i][j] == player:
                     moves_at_point = set(self.get_moves_at_point(state, player, i, j))
+                    moves_at_point_list = []
                     possible_moves = possible_moves.union(moves_at_point)
         
         return possible_moves
@@ -72,8 +73,8 @@ class Attaxx:
 
         moves_at_point = []
 
-        for i in range(self.x_dim):
-            for j in range(self.y_dim):
+        for i in range(self.column_count):
+            for j in range(self.row_count):
                 possible_action = (a, b, i, j)
                 if self.is_valid_move(state, possible_action, player):
                     moves_at_point.append(possible_action)
@@ -92,8 +93,8 @@ class Attaxx:
         count_player1 = 0
         count_player2 = 0
 
-        for i in range(self.x_dim):
-            for j in range(self.y_dim):
+        for i in range(self.column_count):
+            for j in range(self.row_count):
                 if state[i][j] == 1:
                     count_player1+=1
                 elif state[i][j] == -1:
@@ -136,8 +137,19 @@ class Attaxx:
             print()
 
     def get_encoded_state(self, state):
-        encoded_state = np.stack(
-            (state == -1, state == 0, state == 1)
-        ).astype(np.float32)
+        layer_1 = np.where(np.array(state) == -1, 1, 0).astype(np.float32) #returns same sized board replacing all -1 with 1 and all other positions with 0
+        layer_2 = np.where(np.array(state) == 0, 1, 0).astype(np.float32) #same logic for each possible number in position (-1, 1, or 0)
+        layer_3 = np.where(np.array(state) == 1, 1, 0).astype(np.float32)
         
-        return encoded_state
+        result = np.stack([layer_1, layer_2, layer_3]).astype(np.float32) #encoded state
+        
+        return result
+
+    def get_opponent(self, player):
+        return -player
+
+    def get_opponent_value(self, value):
+        return -value
+
+    def change_perspective(self, state, player):
+        return state * player 

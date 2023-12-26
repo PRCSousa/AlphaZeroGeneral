@@ -59,11 +59,12 @@ if __name__ == '__main__':
             'alias': ('Go' + SAVE_NAME)
         }
 
-        game = Go()
-        model = ResNet(game, 9, 3, device)
-        optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
-
     elif GAME == 'Attaxx':
+         
+         game = Attaxx([5, 5])
+         model = ResNet(game, 9, 128, device)
+         optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
+         
          args = {
             'game': 'Attaxx',
             'num_iterations': 8,              # number of highest level iterations
@@ -78,10 +79,6 @@ if __name__ == '__main__':
             'dirichlet_epsilon': 0.125,       # the value of the dirichlet noise
             'alias': ('Attaxx' + SAVE_NAME)
         }
-
-        # game = Attaxx()
-        # model = ResNet(game, 9, 128, device)
-        # optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
     if LOAD:
         model.load_state_dict(torch.load(f'AlphaZero/Models/{GAME+SAVE_NAME}/{MODEL}.pt', map_location=device))
