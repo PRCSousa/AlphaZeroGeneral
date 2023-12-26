@@ -6,9 +6,9 @@ import numpy as np
 from Go.go import Go
 from Attaxx.attaxx import Attaxx
 
-from AlphaZero.alphaZero import ResNet
-from AlphaZero.alphaZero import AlphaZero
-from AlphaZero.alphaZero import MCTS
+from AlphaZero.alphazero_parallel import AlphaZeroParallel
+from AlphaZero.alphazero_parallel import MCTSParallel
+from AlphaZero.alphazero_parallel import ResNetParallel
 
 import os
 
@@ -48,10 +48,10 @@ if __name__ == '__main__':
             'game': 'Go',
             'num_iterations': 20,             # number of highest level iterations
             'num_selfPlay_iterations': 10,   # number of self-play games to play within each iteration
+            'num_parallel_games': 100,        # number games played in parallel  
             'num_mcts_searches': 100,         # number of mcts simulations when selecting a move within self-play
-            'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
-            'num_epochs': 100,                  # number of epochs for training on self-play data for each iteration
-            'batch_size': 64,                # batch size for training
+            'num_epochs': 200,                  # number of epochs for training on self-play data for each iteration
+            'batch_size': 8,                # batch size for training
             'temperature': 1.25,              # temperature for the softmax selection of moves
             'C': 2,                           # the value of the constant policy
             'augment': False,                 # whether to augment the training data with flipped states
@@ -61,17 +61,16 @@ if __name__ == '__main__':
         }
 
         game = Go()
-        model = ResNet(game, 9, 3, device)
+        model = ResNetParallel(game, 9, 3, device)
         optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
     elif GAME == 'Attaxx':
-         
-        args = {
+         args = {
             'game': 'Attaxx',
             'num_iterations': 8,              # number of highest level iterations
             'num_selfPlay_iterations': 400,   # number of self-play games to play within each iteration
+            'num_parallel_games': 100,        # number games played in parallel  
             'num_mcts_searches': 60,          # number of mcts simulations when selecting a move within self-play
-            'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
             'num_epochs': 4,                  # number of epochs for training on self-play data for each iteration
             'batch_size': 40,                 # batch size for training
             'temperature': 1.25,              # temperature for the softmax selection of moves
@@ -82,9 +81,9 @@ if __name__ == '__main__':
             'alias': ('Attaxx' + SAVE_NAME)
         }
 
-        game = Attaxx([5, 5])
-        model = ResNet(game, 9, 128, device)
-        optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
+        # game = Attaxx()
+        # model = ResNet(game, 9, 128, device)
+        # optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
     if LOAD:
         model.load_state_dict(torch.load(f'AlphaZero/Models/{GAME+SAVE_NAME}/{MODEL}.pt', map_location=device))
@@ -92,7 +91,7 @@ if __name__ == '__main__':
 
     if not TEST:
         os.makedirs(f'AlphaZero/Models/{GAME+SAVE_NAME}', exist_ok=True)
-        alphaZero = AlphaZero(model, optimizer, game, args)
+        alphaZero = AlphaZeroParallel(model, optimizer, game, args)
         alphaZero.learn()
     else:
         if not LOAD:
@@ -102,7 +101,7 @@ if __name__ == '__main__':
             game = Go()
 
             model.load_state_dict(torch.load(f'AlphaZero/Models/{GAME+SAVE_NAME}/{MODEL}.pt'))
-            mcts = MCTS(model, game, args)
+            mcts = MCTSParallel(model, game, args)
             state = game.get_initial_state()
             game.print_board(state)
 
@@ -131,12 +130,14 @@ if __name__ == '__main__':
                 game.print_board(state)
             
         elif GAME == 'Attaxx':
-            game = Attaxx()
+            
+            BOARD_SIZE = int(input("Input Attaxx Board Size: "))
+            game = Attaxx([BOARD_SIZE, BOARD_SIZE])
             name = input("Model File Name: ")
 
             model.load_state_dict(torch.load('AlphaZero/Models/Attaxx/' + name + '.pt'))
 
-            mcts = MCTS(model, game, args)
+            mcts = MCTSParallel(model, game, args)
             state = game.get_initial_state()
             game.print_board(state)
 
@@ -144,8 +145,6 @@ if __name__ == '__main__':
 
             while True:
                 if player == 1:
-                    
-                    # input do player
 
                     state = game.get_next_state(state, action, player)
                 else:
