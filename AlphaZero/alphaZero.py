@@ -196,6 +196,12 @@ class MCTS:
                 policy *= valid_moves
                 #print("POLICY AFTER *valid_moves:", policy)
 
+                if np.sum(policy) == 0:
+                    print("VALID MOVES:", valid_moves)
+                    self.game.print_board(node.state)
+                    node.state = self.game.change_perspective(node.state, player=-1)
+                    continue
+
                 policy /= np.sum(policy)
                 
                 value = value.item()
@@ -253,21 +259,31 @@ class AlphaZero:
         player = 1
         state = self.game.get_initial_state()
         iter = 0
-        while True:
 
+        while True:
             neutral_state = self.game.change_perspective(state, player)
+            valid_moves = self.game.get_valid_moves(state, player)
+            #print(np.sum(valid_moves))
+            if np.sum(valid_moves) ==0:
+                # No valid moves for the current player, switch to the other player
+                print(valid_moves)
+                player = self.game.get_opponent(player)
+                print("\nHERE\n")
+                print(self.game.print_board(state))
+                continue
+
             action_probs = self.mcts.search(neutral_state, player)
-            
+
             memory.append((neutral_state, action_probs, player))
-            
+
             temperature_action_probs = action_probs ** (1 / self.args['temperature'])
             temperature_action_probs /= np.sum(temperature_action_probs)
             action = np.random.choice(self.game.action_size, p=temperature_action_probs)
-            
+
             state = self.game.get_next_state(state, action, player)
-            
+
             value, is_terminal = self.game.get_value_and_terminated(state, action)
-            
+
             if is_terminal or iter >= self.args['max_moves']:
                 returnMemory = []
                 for hist_neutral_state, hist_action_probs, hist_player in memory:
@@ -275,7 +291,9 @@ class AlphaZero:
                     augmented_states = self.augment_state(hist_neutral_state)
 
                     for augmented_state in augmented_states:
-                        returnMemory.append((self.game.get_encoded_state(augmented_state), hist_action_probs, hist_outcome))
+                        returnMemory.append(
+                            (self.game.get_encoded_state(augmented_state), hist_action_probs, hist_outcome)
+                        )
                 return returnMemory
 
             player = self.game.get_opponent(player)

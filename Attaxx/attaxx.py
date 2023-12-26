@@ -27,6 +27,8 @@ class Attaxx:
 
     def is_valid_move(self, state, action, player):
         a, b, a1, b1 = action
+        if (a==a1 and b==b1):
+            return False
         if abs(a-a1)>2 or abs(b-b1)>2 or state[a1][b1]!=0 or state[a][b]!=player or ((abs(a-a1)==1 and abs(b-b1)==2) or (abs(a-a1)==2 and abs(b-b1)==1)):
             return False
         return True
