@@ -96,12 +96,13 @@ class Node:
         - `expand()`: Expands the node by adding children.
         - `backpropagate()`: Backpropagates the value of the node to the parent node.
         '''
-    def __init__(self, game, args, state, parent=None, action_taken=None, prior=0, visit_count=0):
+    def __init__(self, game, args, state, player, parent=None, action_taken=None, prior=0, visit_count=0):
         self.game = game
         self.args = args
         self.state = state
         self.parent = parent
         self.action_taken = action_taken
+        self.player = player
         self.prior = prior
         self.children = []
         
@@ -143,7 +144,7 @@ class Node:
                 child_state = self.game.get_next_state(child_state, action, 1)
                 child_state = self.game.change_perspective(child_state, player=-1)
 
-                child = Node(self.game, self.args, child_state, self, action, prob)
+                child = Node(self.game, self.args, child_state, self, action, prob, player = self.game.get_opponent(self.player))
                 self.children.append(child)
             
     def backpropagate(self, value):
@@ -162,7 +163,7 @@ class MCTS:
         
     @torch.no_grad()
     def search(self, state, player):
-        root = Node(self.game, self.args, state, visit_count=1)
+        root = Node(self.game, self.args, state, visit_count=1, player = player)
         
         policy, _ = self.model(
             torch.tensor(self.game.get_encoded_state(state), device=self.model.device).unsqueeze(0)
@@ -181,8 +182,8 @@ class MCTS:
             # print("A")
             while node.is_expanded():
                 node = node.select()
-                
-            value, is_terminal = self.game.get_value_and_terminated(node.state, node.action_taken)
+            
+            value, is_terminal = self.game.get_value_and_terminated(node.state, node.action_taken, node.player)
             value = self.game.get_opponent_value(value)
             
             if node.parent is not None:
@@ -279,7 +280,7 @@ class AlphaZero:
 
             state = self.game.get_next_state(state, action, player)
 
-            value, is_terminal = self.game.get_value_and_terminated(state, action)
+            value, is_terminal = self.game.get_value_and_terminated(state, action, player)
 
             if action == self.game.action_size - 1 and prev_skip and self.args['game'] == 'Go':
                 # Both players passed, end the game

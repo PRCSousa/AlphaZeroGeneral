@@ -258,69 +258,88 @@ class Go():
         newstate = np.concatenate([newstate, [1]])
         return (newstate).astype(np.uint8)
 
-    def get_value_and_terminated(self, state, action):
+    def get_value_and_terminated(self, state, action, player):
         '''
         # Description:
         Returns the value of the state and if the game is over.
         '''
 
-        if self.check_board_full(state = state):
-            if self.check_win(state = state, action = action):
+        scoring = self.scoring(state)
+
+        if self.board_in_endgame(state):
+
+            if player == 1 and scoring >= 0:
                 return 1, True
-            return 0, False
+            elif player == -1 and scoring < 0:
+                return -1, True
+            else:
+                return 0, True
+        else:
+            if player == 1 and scoring >= 0:
+                return 1, False
+            elif player == -1 and scoring < 0:
+                return -1, False
+
         return 0, False
 
         
-    def check_win(self, state, action):
+    def scoring(self, state):
         '''
         # Description:
-        Checks if the player won the game.
+        Checks the score of the game.
         '''
-        # print(f"Checking Action: {str(action)}")
-        if action == self.row_count * self.column_count:
-            return False
-        player = state[action // self.row_count][action % self.column_count]
-        # print(f"Coordinates: {action // self.row_count}, {action % self.column_count}")
+        black = 0
+        white = 0
+        # print("Scoring")
+        for x in range(self.column_count):
+            for y in range(self.row_count):
+                if state[x][y] == self.BLACK:
+                    black += 1
+                elif state[x][y] == self.WHITE:
+                    white += 1
+                elif state[x][y] == self.EMPTY:
 
-        black_pieces = 0
-        white_pieces = 0
-        for row in state:
-            for stone in row:
-                if stone == self.BLACK:
-                    black_pieces += 1
-                if stone == self.WHITE:
-                    white_pieces += 1
-        
-        black_points = black_pieces
-        white_points = white_pieces + self.komi
+                    if x > 0:
+                        if state[x-1][y] == self.BLACK:
+                            black += 1
+                        elif state[x-1][y] == self.WHITE:
+                            white += 1
 
-        if player == self.BLACK:
-            if black_points > white_points:
-                return True
-            return False
-        else:
-            if white_points > black_points:
-                return True
-            return False
-        
-    def check_board_full(self, state: list) -> bool:
+                    if x < self.column_count - 1:
+                        if state[x+1][y] == self.BLACK:
+                            black += 1
+                        elif state[x+1][y] == self.WHITE:
+                            white += 1
+
+                    if y > 0:
+                        if state[x][y-1] == self.BLACK:
+                            black += 1
+                        elif state[x][y-1] == self.WHITE:
+                            white += 1
+
+                    if y < self.row_count - 1:
+                        if state[x][y+1] == self.BLACK:
+                            black += 1
+                        elif state[x][y+1] == self.WHITE:
+                            white += 1
+
+        # print("Black: " + str(black))
+        # print("White: " + str(white))
+                            
+        return black - (white + self.komi)
+
+    def board_in_endgame(self, state):
         '''
         # Description:
-        Checks if the board is full.
-
-        # Returns:
-        True if the board is full.
+        Checks if the board is in the endgame.
         '''
-
-
-        empty_count = 0
-        for row in state:
-            for stone in row:
-                if stone == 0:
-                    empty_count += 1
-                if empty_count >= 3:
-                    return False
-                
+        count = 0
+        for x in range(self.column_count):
+            for y in range(self.row_count):
+                if state[x][y] == self.EMPTY:
+                    count += 1
+                if count >= self.column_count * self.row_count // 4: # if more than 1/4 of the board is empty, it is not the endgame
+                    return False    
         return True
 
     def get_opponent(self, player):
@@ -345,27 +364,27 @@ class Go():
 
 # Runtime
     
-# game = Go()
-# state = game.get_initial_state()
-# game.print_board(state)
+game = Go()
+state = game.get_initial_state()
+game.print_board(state)
 
-# player = 1
+player = 1
 
-# while True:
-#     a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
-#     print("\n")
-#     if a == -1 and b == -1:
-#         action = game.row_count * game.column_count
-#     else:
-#         action = a * 9 + b
-#     state = game.get_next_state(state, action, player)
+while True:
+    a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
+    print("\n")
+    if a == -1 and b == -1:
+        action = game.row_count * game.column_count
+    else:
+        action = a * 9 + b
+    state = game.get_next_state(state, action, player)
 
-#     winner, win = game.get_value_and_terminated(state, action)
-#     if win:
+    winner, win = game.get_value_and_terminated(state, action)
+    if win:
 
-#         game.print_board(state)
-#         print(f"player {winner} wins")
-#         exit()
+        game.print_board(state)
+        print(f"player {winner} wins")
+        exit()
 
-#     player = - player
-#     game.print_board(state)
+    player = - player
+    game.print_board(state)
