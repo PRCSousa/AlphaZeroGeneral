@@ -196,9 +196,9 @@ class MCTS:
                 policy *= valid_moves
                 #print("POLICY AFTER *valid_moves:", policy)
 
-                if np.sum(policy) == 0:
-                    print("VALID MOVES:", valid_moves)
-                    self.game.print_board(node.state)
+                if np.sum(policy) == 0 and self.args["game"] == "Attaxx":
+                    #print("VALID MOVES:", valid_moves)
+                    #self.game.print_board(node.state)
                     node.state = self.game.change_perspective(node.state, player=-1)
                     continue
 
@@ -262,15 +262,6 @@ class AlphaZero:
 
         while True:
             neutral_state = self.game.change_perspective(state, player)
-            valid_moves = self.game.get_valid_moves(state, player)
-            #print(np.sum(valid_moves))
-            if np.sum(valid_moves) ==0:
-                # No valid moves for the current player, switch to the other player
-                print(valid_moves)
-                player = self.game.get_opponent(player)
-                print("\nHERE\n")
-                print(self.game.print_board(state))
-                continue
 
             action_probs = self.mcts.search(neutral_state, player)
 
