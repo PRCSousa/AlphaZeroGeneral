@@ -18,6 +18,7 @@ class Go():
         self.block = []
         self.seki_count = 0
         self.seki_liberties = []
+        self.last_pass = False
         
     def get_initial_state(self):
         board = np.zeros((self.row_count, self.column_count))
@@ -263,6 +264,18 @@ class Go():
         # Description:
         Returns the value of the state and if the game is over.
         '''
+        if action == self.row_count * self.column_count:
+            if self.last_pass == True:
+                self.last_pass == False
+                if self.check_win(state = state, action = action):
+                    return 1, True
+                else:
+                    return 0, True
+            self.last_pass = True
+        else:
+            self.last_pass = False
+
+
         if self.check_board_full(state = state):
             if self.check_win(state = state, action = action):
                 return 1, True
@@ -285,15 +298,15 @@ class Go():
         white_pieces = 0
         for row in state:
             for stone in row:
-                if stone == 1:
+                if stone == self.BLACK:
                     black_pieces += 1
-                if stone == 2:
+                if stone == self.WHITE:
                     white_pieces += 1
         
         black_points = black_pieces
         white_points = white_pieces + self.komi
 
-        if player == 1:
+        if player == self.BLACK:
             if black_points > white_points:
                 return True
             return False
@@ -310,6 +323,7 @@ class Go():
         # Returns:
         True if the board is full.
         '''
+
 
         empty_count = 0
         for row in state:
@@ -354,14 +368,16 @@ class Go():
 #     print("\n")
 #     if a == -1 and b == -1:
 #         action = game.row_count * game.column_count
-#     action = a * 9 + b
+#     else:
+#         action = a * 9 + b
 #     state = game.get_next_state(state, action, player)
 
 #     winner, win = game.get_value_and_terminated(state, action)
+#     print(game.last_pass)
 #     if win:
 
 #         game.print_board(state)
-#         print(f"player {winner} wins")
+#         print(f"player {player} wins")
 #         exit()
 
 #     player = - player

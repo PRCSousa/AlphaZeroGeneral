@@ -8,6 +8,14 @@ import os
 from tqdm import trange
 
 class ResNet(nn.Module):
+    '''
+    # ResNet
+    ## Description:
+        A ResNet model for AlphaZero.
+        The model takes in a state and outputs a policy and value.
+         - The policy is a probability distribution over all possible actions.
+         - The value is a number between -1 and 1, where -1 means the current player loses and 1 means the current player wins following a tanh activation.
+        '''
     def __init__(self, game, num_resBlocks, num_hidden, device):
         super().__init__()
         self.device = device
@@ -39,6 +47,15 @@ class ResNet(nn.Module):
         self.to(device)
         
     def forward(self, x):
+        '''
+        ## Description:
+            The forward pass of the model. This overrides the forward method of nn.Module so that it can be called directly on the model.
+            ## Parameters:
+            - `x`: The input tensor.
+            ## Returns:
+            - `policy`: The policy output of the model.
+            - `value`: The value output of the model.
+            '''
         x = self.startBlock(x)
         for resBlock in self.backBone:
             x = resBlock(x)
@@ -47,6 +64,11 @@ class ResNet(nn.Module):
         return policy, value
         
 class ResBlock(nn.Module):
+    '''
+    # ResBlock
+    ## Description:
+        A residual block for the ResNet model.
+    '''
     def __init__(self, num_hidden):
         super().__init__()
         self.conv1 = nn.Conv2d(num_hidden, num_hidden, kernel_size=3, padding=1)
@@ -63,6 +85,17 @@ class ResBlock(nn.Module):
         return x
 
 class Node:
+    '''
+    # Alpha Zero Node
+    ## Description:
+        A node for the AlphaZero MCTS. It contains the state, the action taken to get to the state, the prior probability of the action, the visit count, the value sum, and the children of the node.
+    ## Metohds:
+        - `is_expanded()`: Returns whether the node has been expanded.
+        - `select()`: Selects the best child node based on the UCB.
+        - `get_ucb()`: Returns the UCB of a child node.
+        - `expand()`: Expands the node by adding children.
+        - `backpropagate()`: Backpropagates the value of the node to the parent node.
+        '''
     def __init__(self, game, args, state, parent=None, action_taken=None, prior=0, visit_count=0):
         self.game = game
         self.args = args
@@ -76,6 +109,12 @@ class Node:
         self.value_sum = 0
         
     def is_expanded(self):
+        '''
+        # is_expanded
+        ## Description:
+            Returns whether the node has been expanded.
+        ## Returns:
+            - `bool`: Whether the node has been expanded.'''
         return len(self.children) > 0
     
     def select(self):
@@ -156,6 +195,7 @@ class MCTS:
                 #print("VALID_MOVES:", valid_moves)
                 policy *= valid_moves
                 #print("POLICY AFTER *valid_moves:", policy)
+
                 policy /= np.sum(policy)
                 
                 value = value.item()
@@ -212,6 +252,7 @@ class AlphaZero:
         memory = []
         player = 1
         state = self.game.get_initial_state()
+        iter = 0
         while True:
 
             neutral_state = self.game.change_perspective(state, player)
@@ -227,7 +268,7 @@ class AlphaZero:
             
             value, is_terminal = self.game.get_value_and_terminated(state, action)
             
-            if is_terminal:
+            if is_terminal or iter >= self.args['max_moves']:
                 returnMemory = []
                 for hist_neutral_state, hist_action_probs, hist_player in memory:
                     hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
@@ -235,10 +276,10 @@ class AlphaZero:
 
                     for augmented_state in augmented_states:
                         returnMemory.append((self.game.get_encoded_state(augmented_state), hist_action_probs, hist_outcome))
-
                 return returnMemory
 
             player = self.game.get_opponent(player)
+            iter += 1
                 
     def train(self, memory):
         random.shuffle(memory)
@@ -270,7 +311,7 @@ class AlphaZero:
             for selfPlay_iteration in trange(self.args['num_selfPlay_iterations']):
                 memory += self.selfPlay()
 
-                
+            print(f"Memory size: {len(memory)}")
             self.model.train()
             for epoch in trange(self.args['num_epochs']):
                 self.train(memory)

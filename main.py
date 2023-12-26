@@ -49,8 +49,9 @@ if __name__ == '__main__':
             'num_iterations': 20,             # number of highest level iterations
             'num_selfPlay_iterations': 10,   # number of self-play games to play within each iteration
             'num_mcts_searches': 100,         # number of mcts simulations when selecting a move within self-play
-            'num_epochs': 200,                  # number of epochs for training on self-play data for each iteration
-            'batch_size': 8,                # batch size for training
+            'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
+            'num_epochs': 100,                  # number of epochs for training on self-play data for each iteration
+            'batch_size': 64,                # batch size for training
             'temperature': 1.25,              # temperature for the softmax selection of moves
             'C': 2,                           # the value of the constant policy
             'augment': False,                 # whether to augment the training data with flipped states
@@ -70,6 +71,7 @@ if __name__ == '__main__':
             'num_iterations': 8,              # number of highest level iterations
             'num_selfPlay_iterations': 100,   # number of self-play games to play within each iteration
             'num_mcts_searches': 100,          # number of mcts simulations when selecting a move within self-play
+            'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
             'num_epochs': 4,                  # number of epochs for training on self-play data for each iteration
             'batch_size': 128,                 # batch size for training
             'temperature': 1.25,              # temperature for the softmax selection of moves
