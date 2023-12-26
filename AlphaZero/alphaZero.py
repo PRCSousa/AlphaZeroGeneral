@@ -143,8 +143,7 @@ class Node:
                 child_state = self.state.copy()
                 child_state = self.game.get_next_state(child_state, action, 1)
                 child_state = self.game.change_perspective(child_state, player=-1)
-
-                child = Node(self.game, self.args, child_state, self, action, prob, player = self.game.get_opponent(self.player))
+                child = Node(self.game, self.args, child_state, self.game.get_opponent(self.player), self, action, prob)
                 self.children.append(child)
             
     def backpropagate(self, value):
@@ -163,7 +162,7 @@ class MCTS:
         
     @torch.no_grad()
     def search(self, state, player):
-        root = Node(self.game, self.args, state, visit_count=1, player = player)
+        root = Node(self.game, self.args, state, player, visit_count=1)
         
         policy, _ = self.model(
             torch.tensor(self.game.get_encoded_state(state), device=self.model.device).unsqueeze(0)
