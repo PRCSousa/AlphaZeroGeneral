@@ -4,7 +4,7 @@ class Attaxx:
     def __init__(self, args):
         self.column_count = args[0]
         self.row_count = args[1]
-        self.action_size = self.column_count * self.row_count
+        self.action_size = (self.column_count * self.row_count) ** 2
     
     def get_initial_state(self):
         state = np.zeros((self.column_count, self.row_count))
@@ -14,17 +14,16 @@ class Attaxx:
         state[self.row_count-1][0] = -1
         return state
     
-    
     def get_next_state(self, state, action, player):
-        a, b, a1, b1 = action
+        move = self.int_to_move(action)
+        a, b, a1, b1 = move[0], move[1], move[2], move[3]
         if abs(a-a1)==2 or abs(b-b1)==2:
             state[a][b] = 0
             state[a1][b1] = player
         else:
             state[a1][b1] = player
-        self.capture_pieces(state, action, player)
+        self.capture_pieces(state, move, player)
         return state
-        
 
     def is_valid_move(self, state, action, player):
         a, b, a1, b1 = action
@@ -55,8 +54,14 @@ class Attaxx:
                                 return True
         return False
 
-    def get_valid_moves(self, state, player):
+    def move_to_int(self, move):
+        return move[3] + move[2]*10 + move[1]*100 + move[0]*1000
 
+    def int_to_move(self, num):
+        move = [num // 1000 % 10, num // 100 % 10, num // 10 % 10, num % 10]
+        return move
+    
+    def get_valid_moves(self, state, player):
         possible_moves = set()
 
         for i in range(self.column_count):
@@ -64,15 +69,18 @@ class Attaxx:
                 state[i][j] = int(state[i][j])
                 if state[i][j] == player:
                     moves_at_point = set(self.get_moves_at_point(state, player, i, j))
-                    moves_at_point_list = []
                     possible_moves = possible_moves.union(moves_at_point)
         
-        return possible_moves
+        possible_moves_to_int = []
+        for move in possible_moves:
+            possible_moves_to_int.append(self.move_to_int(move))
+        
+        binary_representation = [1 if i in possible_moves_to_int else 0 for i in range(self.action_size)]
+
+        return binary_representation
 
     def get_moves_at_point(self, state, player, a, b):
-
         moves_at_point = []
-
         for i in range(self.column_count):
             for j in range(self.row_count):
                 possible_action = (a, b, i, j)
@@ -114,7 +122,7 @@ class Attaxx:
         
         return 0, False
     
-    def get_value_and_terminated(self, state):
+    def get_value_and_terminated(self, state, action):
         winner, game_over = self.check_win_and_over(state, action = None)
         return winner, game_over
     
