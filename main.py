@@ -68,12 +68,12 @@ if __name__ == '__main__':
         args = {
             'game': 'Attaxx',
             'num_iterations': 8,              # number of highest level iterations
-            'num_selfPlay_iterations': 400,   # number of self-play games to play within each iteration
-            'num_mcts_searches': 60,          # number of mcts simulations when selecting a move within self-play
+            'num_selfPlay_iterations': 100,   # number of self-play games to play within each iteration
+            'num_mcts_searches': 100,          # number of mcts simulations when selecting a move within self-play
             'num_epochs': 4,                  # number of epochs for training on self-play data for each iteration
-            'batch_size': 40,                 # batch size for training
+            'batch_size': 128,                 # batch size for training
             'temperature': 1.25,              # temperature for the softmax selection of moves
-            'C': 2,                           # the value of the constant policy
+            'C': 3,                           # the value of the constant policy
             'augment': False,                 # whether to augment the training data with flipped states
             'dirichlet_alpha': 0.3,           # the value of the dirichlet noise
             'dirichlet_epsilon': 0.125,       # the value of the dirichlet noise

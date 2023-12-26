@@ -29,7 +29,6 @@ class Attaxx:
         a, b, a1, b1 = action
         if abs(a-a1)>2 or abs(b-b1)>2 or state[a1][b1]!=0 or state[a][b]!=player or ((abs(a-a1)==1 and abs(b-b1)==2) or (abs(a-a1)==2 and abs(b-b1)==1)):
             return False
-
         return True
 
     def capture_pieces(self, state, action, player):
@@ -55,11 +54,15 @@ class Attaxx:
         return False
 
     def move_to_int(self, move):
-        return move[3] + move[2]*10 + move[1]*100 + move[0]*1000
+        return move[3] + move[2]*self.column_count + move[1]*self.column_count**2 + move[0]*self.column_count**3
 
     def int_to_move(self, num):
-        move = [num // 1000 % 10, num // 100 % 10, num // 10 % 10, num % 10]
+        move = [(num // self.column_count**3) % self.column_count, 
+                (num // self.column_count**2) % self.column_count, 
+                (num // self.column_count) % self.column_count, 
+                num % self.column_count]
         return move
+
     
     def get_valid_moves(self, state, player):
         possible_moves = set()
@@ -74,7 +77,6 @@ class Attaxx:
         possible_moves_to_int = []
         for move in possible_moves:
             possible_moves_to_int.append(self.move_to_int(move))
-        
         binary_representation = [1 if i in possible_moves_to_int else 0 for i in range(self.action_size)]
 
         return binary_representation

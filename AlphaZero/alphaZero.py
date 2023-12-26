@@ -147,12 +147,15 @@ class MCTS:
             value = self.game.get_opponent_value(value)
             
             if not is_terminal:
+                
                 policy, value = self.model(torch.tensor(self.game.get_encoded_state(node.state), device=self.model.device).unsqueeze(0)
                 )
                 policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
+                #print("POLICY:", policy)
                 valid_moves = self.game.get_valid_moves(node.state, player)
+                #print("VALID_MOVES:", valid_moves)
                 policy *= valid_moves
-                print("POLICY AFTER *valid_moves:", policy)
+                #print("POLICY AFTER *valid_moves:", policy)
                 policy /= np.sum(policy)
                 
                 value = value.item()
