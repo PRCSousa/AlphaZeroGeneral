@@ -131,16 +131,36 @@ if __name__ == '__main__':
                 game.print_board(state)
             
         elif GAME == 'Attaxx':
-            game = Attaxx()
-            name = input("Model File Name: ")
+            game = Attaxx([5,5])
 
-            model.load_state_dict(torch.load('AlphaZero/Models/Attaxx/' + name + '.pt'))
-
+            model.load_state_dict(torch.load(f'AlphaZero/Models/{GAME+SAVE_NAME}/{MODEL}.pt'))
             mcts = MCTS(model, game, args)
             state = game.get_initial_state()
             game.print_board(state)
 
             player = 1
+
+            while True:
+                if player == 1:
+                    move = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
+                    print("\n")
+                    action = game.move_to_int(move)
+                    state = game.get_next_state(state, action, player)
+                else:
+                    neut = game.change_perspective(state, player)
+                    action = mcts.search(neut, player)
+                    action = np.argmax(action)
+                    print(f"\nAlphaZero Action: {action}\n")
+                    state = game.get_next_state(state, action, player)
+
+                winner, win = game.get_value_and_terminated(state, action)
+                if win:
+                    game.print_board(state)
+                    print(f"player {winner} wins")
+                    exit()
+
+                player = - player
+                game.print_board(state)
 
             while True:
                 if player == 1:
