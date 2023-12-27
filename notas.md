@@ -40,6 +40,8 @@ O modelo rapidamente converge para dar skip sempre, implementei finalmente a reg
 
 Vou completamente mudar a scoring para não apoiar skips e a best child será escolhida aleatoriamente caso haja mais do que uma envez da primeria/ultima.
 
-## Modelo 7 | Go_20_20_100_100_64
+## Modelo 7 | Go20_20_100_100_64
 
-Veremos
+Not bad per se, altough fiz uma so iteração. Assumo que vá ser mau overall dado que só faz 100 mcts searches. Vou fazer um overnight com 250.
+
+## Modelo 8 | Go20_20_250_100_64
