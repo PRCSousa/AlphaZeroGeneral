@@ -205,7 +205,7 @@ class Go():
         state = self.captures(state, -player, a, b)[1]
         return state
     
-    def is_valid_move(self, state: list, action: int, player: int) -> bool:
+    def is_valid_move(self, state: list, action: tuple, player: int) -> bool:
         '''
         # Description:
         Checks if a move is valid.
@@ -217,8 +217,8 @@ class Go():
         A boolean confirming the validity of the move.
         '''
 
-        a = action // self.row_count
-        b = action % self.column_count
+        a = action[0]
+        b = action[1]
 
         #print(f"{a} , {b}")
 
@@ -347,30 +347,30 @@ class Go():
 
 # Runtime
     
-game = Go()
-state = game.get_initial_state()
-game.print_board(state)
+# game = Go()
+# state = game.get_initial_state()
+# game.print_board(state)
 
-player = 1
+# player = 1
 
-while True:
-    a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
-    print("\n")
-    if a == -1 and b == -1:
-        action = game.row_count * game.column_count
-    else:
-        action = a * 9 + b
-    if game.is_valid_move(state,action,player):
-        state = game.get_next_state(state, action, player)
-    else:
-        continue
+# while True:
+#     a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
+#     print("\n")
+#     if a == -1 and b == -1:
+#         action = game.row_count * game.column_count
+#     else:
+#         action = a * 9 + b
+#     if game.is_valid_move(state,action,player):
+#         state = game.get_next_state(state, action, player)
+#     else:
+#         continue
 
-    winner, win = game.get_value_and_terminated(state, action, player)
-    if win:
+#     winner, win = game.get_value_and_terminated(state, action, player)
+#     if win:
 
-        game.print_board(state)
-        print(f"player {winner} wins")
-        exit()
+#         game.print_board(state)
+#         print(f"player {winner} wins")
+#         exit()
 
-    player = - player
-    game.print_board(state)
+#     player = - player
+#     game.print_board(state)

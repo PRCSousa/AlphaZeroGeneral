@@ -48,7 +48,7 @@ if __name__ == '__main__':
             'game': 'Go',
             'num_iterations': 20,             # number of highest level iterations
             'num_selfPlay_iterations': 20,   # number of self-play games to play within each iteration
-            'num_mcts_searches': 400,         # number of mcts simulations when selecting a move within self-play
+            'num_mcts_searches': 300,         # number of mcts simulations when selecting a move within self-play
             'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
             'num_epochs': 100,                  # number of epochs for training on self-play data for each iteration
             'batch_size': 64,                # batch size for training

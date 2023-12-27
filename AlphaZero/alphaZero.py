@@ -278,7 +278,7 @@ class AlphaZero:
             action = np.random.choice(self.game.action_size, p=temperature_action_probs)
 
             print(f"\nPlayer: {player}")
-            if action != self.game.row_count * self.game.row_count + 1:
+            if action != self.game.action_size - 1:
                 print(f"Action: {action // self.game.row_count} {action % self.game.column_count}")
             else:
                 print(f"Action: Skip")
@@ -289,9 +289,13 @@ class AlphaZero:
 
             print(f"Evaluation: {value}")
 
-            if action == self.game.action_size - 1 and prev_skip and self.args['game'] == 'Go':
-                # Both players passed, end the game
-                is_terminal = True
+            if action == self.game.action_size - 1 and self.args['game'] == 'Go':
+                if prev_skip:
+                    is_terminal = True
+                else:
+                    prev_skip = True
+            else:
+                prev_skip = False
 
             if is_terminal or iter >= self.args['max_moves']:
                 returnMemory = []
