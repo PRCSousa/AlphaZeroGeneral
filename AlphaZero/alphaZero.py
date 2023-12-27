@@ -269,10 +269,8 @@ class AlphaZero:
         prev_skip = False
         while True:
             neutral_state = self.game.change_perspective(state, player)
-
-
             action_probs = self.mcts.search(neutral_state, player)
-
+            print(action_probs)
             memory.append((neutral_state, action_probs, player))
 
             temperature_action_probs = action_probs ** (1 / self.args['temperature'])
@@ -282,6 +280,8 @@ class AlphaZero:
             state = self.game.get_next_state(state, action, player)
 
             value, is_terminal = self.game.get_value_and_terminated(state, action, player)
+
+            print(f"Evaluation: {value}")
 
             if action == self.game.action_size - 1 and prev_skip and self.args['game'] == 'Go':
                 # Both players passed, end the game
