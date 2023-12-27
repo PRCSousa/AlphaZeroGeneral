@@ -270,14 +270,20 @@ class AlphaZero:
         while True:
             neutral_state = self.game.change_perspective(state, player)
             action_probs = self.mcts.search(neutral_state, player)
-            print(action_probs)
+            # print(action_probs)
             memory.append((neutral_state, action_probs, player))
 
             temperature_action_probs = action_probs ** (1 / self.args['temperature'])
             temperature_action_probs /= np.sum(temperature_action_probs)
             action = np.random.choice(self.game.action_size, p=temperature_action_probs)
 
+            print(f"\nPlayer: {player}")
+            if action != self.game.row_count * self.game.row_count + 1:
+                print(f"Action: {action // self.game.row_count} {action % self.game.column_count}")
+            else:
+                print(f"Action: Skip")
             state = self.game.get_next_state(state, action, player)
+            self.game.print_board(state)
 
             value, is_terminal = self.game.get_value_and_terminated(state, action, player)
 

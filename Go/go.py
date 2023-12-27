@@ -16,7 +16,6 @@ class Go():
         self.action_size = self.row_count * self.column_count + 1
         self.liberties = []
         self.block = []
-        self.seki_count = 0
         self.seki_liberties = []
         
     def get_initial_state(self):
@@ -173,20 +172,13 @@ class Go():
                 # if no liberties remove the stones
                 if len(liberties) == 0: 
                     #clear block
-
                     state = self.clear_block(block, state)
+                    check = True
 
-                        #if the move is a "ko" move but causes the capture of stones, then it is not allowed, unless it is the second move, in which case it is dealt afterwards
-                    if self.seki_count == 0:
-                        # print("Seki Found")
-                        # returns False, which means that the move has caused a capture (the logic worked out that way in the initial development and i'm not sure what it would affect if it is changed)
-                        check = True
-                        self.seki_count = 1
-                        continue
                 #restore the board
                 state = self.restore_board(state)
-        # print("Seki Count: " + str(self.seki_count))
-        # print("Captures: " + str(check))
+
+        #print("Captures: " + str(check))
         return check, state
     
     def set_stone(self, a, b, state, player):
@@ -213,7 +205,7 @@ class Go():
         state = self.captures(state, -player, a, b)[1]
         return state
     
-    def is_valid_move(self, state: list, action: tuple, player: int) -> bool:
+    def is_valid_move(self, state: list, action: int, player: int) -> bool:
         '''
         # Description:
         Checks if a move is valid.
@@ -225,24 +217,33 @@ class Go():
         A boolean confirming the validity of the move.
         '''
 
-        a = action[0]
-        b = action[1]
+        a = action // self.row_count
+        b = action % self.column_count
 
+        #print(f"{a} , {b}")
 
-        statecopy = np.copy(state).astype(np.uint8)
+        statecopy = np.copy(state).astype(np.int8)
 
         if state[a][b] != self.EMPTY:
+            # print("Space Occupied")
             return False 
-        statecopy = self.set_stone(a,b, statecopy, player)
 
-        statecopy = self.captures(statecopy, 3 - player, a, b)[1]
 
-        if self.captures(statecopy, 3-player, a, b)[0] == False and self.captures(statecopy, player, a , b)[0] == True:
-            # print("Invalid Move: Suicide")
-            return False
-            
-        return True
-    
+        statecopy = self.set_stone(a,b,statecopy,player)
+
+        if self.captures(statecopy, -player, a, b)[0] == True:
+            return True
+        else:
+            #print("no captures")
+            libs, block = self.count(b,a,statecopy,player,[],[])
+            #print(libs)
+            if len(libs) == 0:
+                #print("Invalid, Suicide")
+                return False
+            else:
+                return True
+        
+
     def get_valid_moves(self, state, player):
         '''
         # Description:
@@ -256,7 +257,7 @@ class Go():
         
         newstate = newstate.reshape(-1)
         newstate = np.concatenate([newstate, [1]])
-        return (newstate).astype(np.uint8)
+        return (newstate).astype(np.int8)
 
     def get_value_and_terminated(self, state, action, player):
         '''
@@ -346,27 +347,30 @@ class Go():
 
 # Runtime
     
-# game = Go()
-# state = game.get_initial_state()
-# game.print_board(state)
+game = Go()
+state = game.get_initial_state()
+game.print_board(state)
 
-# player = 1
+player = 1
 
-# while True:
-#     a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
-#     print("\n")
-#     if a == -1 and b == -1:
-#         action = game.row_count * game.column_count
-#     else:
-#         action = a * 9 + b
-#     state = game.get_next_state(state, action, player)
+while True:
+    a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
+    print("\n")
+    if a == -1 and b == -1:
+        action = game.row_count * game.column_count
+    else:
+        action = a * 9 + b
+    if game.is_valid_move(state,action,player):
+        state = game.get_next_state(state, action, player)
+    else:
+        continue
 
-#     winner, win = game.get_value_and_terminated(state, action)
-#     if win:
+    winner, win = game.get_value_and_terminated(state, action, player)
+    if win:
 
-#         game.print_board(state)
-#         print(f"player {winner} wins")
-#         exit()
+        game.print_board(state)
+        print(f"player {winner} wins")
+        exit()
 
-#     player = - player
-#     game.print_board(state)
+    player = - player
+    game.print_board(state)
