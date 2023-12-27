@@ -264,9 +264,9 @@ class Go():
         Returns the value of the state and if the game is over.
         '''
 
-        scoring = self.scoring(state)
+        scoring, endgame = self.scoring(state)
 
-        if self.board_in_endgame(state):
+        if endgame:
 
             if player == 1 and scoring >= 0:
                 return 1, True
@@ -290,6 +290,8 @@ class Go():
         '''
         black = 0
         white = 0
+        empty = 0
+        endgame = True
         # print("Scoring")
         for x in range(self.column_count):
             for y in range(self.row_count):
@@ -298,7 +300,9 @@ class Go():
                 elif state[x][y] == self.WHITE:
                     white += 1
                 elif state[x][y] == self.EMPTY:
-
+                    empty += 1
+                    if empty >= self.column_count * self.row_count // 4: # if more than 1/4 of the board is empty, it is not the endgame
+                        endgame = False
                     if x > 0:
                         if state[x-1][y] == self.BLACK:
                             black += 1
@@ -326,21 +330,7 @@ class Go():
         # print("Black: " + str(black))
         # print("White: " + str(white))
                             
-        return black - (white + self.komi)
-
-    def board_in_endgame(self, state):
-        '''
-        # Description:
-        Checks if the board is in the endgame.
-        '''
-        count = 0
-        for x in range(self.column_count):
-            for y in range(self.row_count):
-                if state[x][y] == self.EMPTY:
-                    count += 1
-                if count >= self.column_count * self.row_count // 4: # if more than 1/4 of the board is empty, it is not the endgame
-                    return False    
-        return True
+        return black - (white + self.komi), endgame
 
     def get_opponent(self, player):
         return -player

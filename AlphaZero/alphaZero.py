@@ -119,16 +119,18 @@ class Node:
         return len(self.children) > 0
     
     def select(self):
-        best_child = None
+        best_child = []
         best_ucb = -np.inf
         
         for child in self.children:
             ucb = self.get_ucb(child)
             if ucb > best_ucb:
-                best_child = child
+                best_child = [child]
                 best_ucb = ucb
+            elif ucb == best_ucb:
+                best_child.append(child)
                 
-        return best_child
+        return best_child[0] if len(best_child) == 1 else random.choice(best_child)
     
     def get_ucb(self, child):
         if child.visit_count == 0:
