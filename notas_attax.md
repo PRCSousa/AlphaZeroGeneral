@@ -12,6 +12,8 @@ Formato:
 
 Joga bastante mal, ganhei-lhe em 4 jogadas. Vou diminuir o numero de epocas para metade para ficar mais perto do AlphaZero original e aumentar as searches e iterações.
 
-## Modelo 1 | Attaxx5_15_100_1000_2_128
+## Modelo 2 | Attaxx5_15_100_1000_2_128
 
-Em treinamento.
+Só treinou 10 iteraçoes por falta de bateria, De alguma forma continua igualmente burro. Jogos ganhos em numeros baixos de jogadas.
+
+## Modelo 3 | Attaxx5_15_200_1000_4_64
