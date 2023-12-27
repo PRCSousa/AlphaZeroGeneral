@@ -195,11 +195,8 @@ class MCTS:
             if not is_terminal:
                 policy, value = self.model(torch.tensor(self.game.get_encoded_state(node.state), device=self.model.device).unsqueeze(0))
                 policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
-                #print("POLICY:", policy)
                 valid_moves = self.game.get_valid_moves(node.state, player)
-                #print("VALID_MOVES:", valid_moves)
                 policy *= valid_moves
-                #print("POLICY AFTER *valid_moves:", policy)
 
                 if np.sum(policy) == 0 and self.args["game"] == "Attaxx":
                     node.state = self.game.change_perspective(node.state, player=-1)
@@ -270,7 +267,7 @@ class AlphaZero:
         while True:
             neutral_state = self.game.change_perspective(state, player)
             action_probs = self.mcts.search(neutral_state, player)
-            print(action_probs)
+            #print(action_probs)
             memory.append((neutral_state, action_probs, player))
 
             temperature_action_probs = action_probs ** (1 / self.args['temperature'])
@@ -281,7 +278,7 @@ class AlphaZero:
 
             value, is_terminal = self.game.get_value_and_terminated(state, action, player)
 
-            print(f"Evaluation: {value}")
+            #print(f"Evaluation: {value}")
 
             if action == self.game.action_size - 1 and prev_skip and self.args['game'] == 'Go':
                 # Both players passed, end the game
