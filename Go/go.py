@@ -13,7 +13,7 @@ class Go():
         self.row_count = 9
         self.column_count = 9
         self.komi = 6.5
-        self.action_size = self.row_count * self.column_count + 1
+        self.action_size = self.row_count * self.column_count
         self.liberties = []
         self.block = []
         self.seki_count = 0
@@ -255,7 +255,7 @@ class Go():
                     newstate[a][b] = 1
         
         newstate = newstate.reshape(-1)
-        newstate = np.concatenate([newstate, [1]])
+        # newstate = np.concatenate([newstate, [1]])
         return (newstate).astype(np.uint8)
 
     def get_value_and_terminated(self, state, action, player):
