@@ -177,6 +177,7 @@ class MCTS:
         policy *= valid_moves
         policy /= np.sum(policy)
         root.expand(policy)
+        #print(valid_moves)
         
         for search in range(self.args['num_mcts_searches']):
             node = root
@@ -192,10 +193,7 @@ class MCTS:
                     is_terminal = True # if the action is pass when the previous action was also pass, end the game
 
             if not is_terminal:
-                
-                
-                policy, value = self.model(torch.tensor(self.game.get_encoded_state(node.state), device=self.model.device).unsqueeze(0)
-                )
+                policy, value = self.model(torch.tensor(self.game.get_encoded_state(node.state), device=self.model.device).unsqueeze(0))
                 policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
                 #print("POLICY:", policy)
                 valid_moves = self.game.get_valid_moves(node.state, player)
@@ -204,10 +202,12 @@ class MCTS:
                 #print("POLICY AFTER *valid_moves:", policy)
 
                 if np.sum(policy) == 0 and self.args["game"] == "Attaxx":
-                    #print("VALID MOVES:", valid_moves)
-                    #self.game.print_board(node.state)
                     node.state = self.game.change_perspective(node.state, player=-1)
                     continue
+                    '''policy, value = self.model(torch.tensor(self.game.get_encoded_state(node.state), device=self.model.device).unsqueeze(0))
+                    policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
+                    valid_moves = self.game.get_valid_moves(node.state, player)
+                    policy *= valid_moves'''
 
                 policy /= np.sum(policy)
                 
