@@ -268,12 +268,10 @@ class Go():
         scoring, endgame = self.scoring(state)
 
         if endgame:
-
             return scoring, True
         else:
-            return scoring, False
+            return 0, False
 
-        return 0, False
 
         
     def scoring(self, state):
