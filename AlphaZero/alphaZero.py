@@ -36,11 +36,11 @@ class ResNet(nn.Module):
             nn.Linear(32 * game.row_count * game.column_count, game.action_size)
         )
         self.valueHead = nn.Sequential(
-            nn.Conv2d(num_hidden, game.row_count, kernel_size=3, padding="same"),
-            nn.BatchNorm2d(game.row_count),
+            nn.Conv2d(num_hidden, 3, kernel_size=3, padding="same"),
+            nn.BatchNorm2d(3),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(game.row_count * game.row_count * game.column_count, 1),
+            nn.Linear(3 * game.row_count * game.column_count, 1),
             nn.Tanh()
         )
         
