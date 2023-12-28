@@ -308,7 +308,7 @@ class Go():
                             
         return black - (white + self.komi), endgame
     
-    def count_territory(board):
+    def count_territory(self, board):
         black_territory = 0
         white_territory = 0
         visited = set()

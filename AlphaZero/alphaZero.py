@@ -279,12 +279,14 @@ class AlphaZero:
                 print(f"Action: {action // self.game.row_count} {action % self.game.column_count}")
             else:
                 print(f"Action: Skip")
+                
             state = self.game.get_next_state(state, action, player)
+
             self.game.print_board(state)
 
             value, is_terminal = self.game.get_value_and_terminated(state, action, player)
 
-            #print(f"Evaluation: {value}")
+            print(f"Evaluation: {value}")
 
             if action == self.game.action_size - 1 and self.args['game'] == 'Go':
                 if prev_skip:
