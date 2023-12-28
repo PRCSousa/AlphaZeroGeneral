@@ -65,24 +65,24 @@ if __name__ == '__main__':
         optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
     elif GAME == 'Attaxx':
-         
+        game_size = [5,5]
         args = {
             'game': 'Attaxx',
-            'num_iterations': 8,              # number of highest level iterations
-            'num_selfPlay_iterations': 100,   # number of self-play games to play within each iteration
-            'num_mcts_searches': 100,          # number of mcts simulations when selecting a move within self-play
+            'num_iterations': 15,              # number of highest level iterations
+            'num_selfPlay_iterations': 200,   # number of self-play games to play within each iteration
+            'num_mcts_searches': 1000,         # number of mcts simulations when selecting a move within self-play
             'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
             'num_epochs': 4,                  # number of epochs for training on self-play data for each iteration
-            'batch_size': 128,                 # batch size for training
+            'batch_size': 64,                # batch size for training
             'temperature': 1.25,              # temperature for the softmax selection of moves
-            'C': 3,                           # the value of the constant policy
+            'C': 2,                           # the value of the constant policy
             'augment': False,                 # whether to augment the training data with flipped states
             'dirichlet_alpha': 0.3,           # the value of the dirichlet noise
             'dirichlet_epsilon': 0.125,       # the value of the dirichlet noise
             'alias': ('Attaxx' + SAVE_NAME)
         }
 
-        game = Attaxx([5, 5])
+        game = Attaxx(game_size)
         model = ResNet(game, 9, 128, device)
         optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
@@ -147,10 +147,11 @@ if __name__ == '__main__':
                     action = game.move_to_int(move)
                     state = game.get_next_state(state, action, player)
                 else:
-                    neut = game.change_perspective(state, player)
-                    action = mcts.search(neut, player)
+                    #neut = game.change_perspective(state, player)
+                    #print(neut)
+                    action = mcts.search(state, player)
                     action = np.argmax(action)
-                    print(f"\nAlphaZero Action: {action}\n")
+                    print(f"\nAlphaZero Action: {game.int_to_move(action)}\n")
                     state = game.get_next_state(state, action, player)
 
                 winner, win = game.get_value_and_terminated(state, action, player)
@@ -159,5 +160,5 @@ if __name__ == '__main__':
                     print(f"player {winner} wins")
                     exit()
 
-                player = - player
+                player = -player
                 game.print_board(state)
