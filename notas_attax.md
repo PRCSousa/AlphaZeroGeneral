@@ -17,3 +17,10 @@ Joga bastante mal, ganhei-lhe em 4 jogadas. Vou diminuir o numero de epocas para
 Só treinou 10 iteraçoes por falta de bateria, De alguma forma continua igualmente burro. Jogos ganhos em numeros baixos de jogadas.
 
 ## Modelo 3 | Attaxx5_15_200_1000_4_64
+
+Still dumb.
+
+## Modelo 4 | Attaxx5_10_10000_1000_500_1024
+
+I hope my pc doesn't die.
+

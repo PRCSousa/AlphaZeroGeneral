@@ -174,14 +174,19 @@ class MCTS:
             * np.random.dirichlet([self.args['dirichlet_alpha']] * self.game.action_size)
         
         valid_moves = self.game.get_valid_moves(state, player)
+
+        if self.args["game"] == "Attaxx":
+            if np.sum(valid_moves) == 0:
+                valid_moves[-1] = 1
+            else:
+                valid_moves[-1] = 0
+
         policy *= valid_moves
         policy /= np.sum(policy)
         root.expand(policy)
-        #print(valid_moves)
         
         for search in range(self.args['num_mcts_searches']):
             node = root
-            # print("A")
             while node.is_expanded():
                 node = node.select()
             
@@ -196,22 +201,19 @@ class MCTS:
                 policy, value = self.model(torch.tensor(self.game.get_encoded_state(node.state), device=self.model.device).unsqueeze(0))
                 policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
                 valid_moves = self.game.get_valid_moves(node.state, player)
+
+                if self.args["game"] == "Attaxx":
+                    if np.sum(valid_moves) == 0:
+                        valid_moves[-1] = 1
+                    else:
+                        valid_moves[-1] = 0
+
                 policy *= valid_moves
-
-                if np.sum(policy) == 0 and self.args["game"] == "Attaxx":
-                    node.state = self.game.change_perspective(node.state, player=-1)
-                    continue
-                    '''policy, value = self.model(torch.tensor(self.game.get_encoded_state(node.state), device=self.model.device).unsqueeze(0))
-                    policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
-                    valid_moves = self.game.get_valid_moves(node.state, player)
-                    policy *= valid_moves'''
-
                 policy /= np.sum(policy)
                 
                 value = value.item()
-                
                 node.expand(policy)
-            # print("B")
+
             node.backpropagate(value)    
             
         action_probs = np.zeros(self.game.action_size)
@@ -265,28 +267,39 @@ class AlphaZero:
         iter = 0
         prev_skip = False
         while True:
-            neutral_state = self.game.change_perspective(state, player)
-            action_probs = self.mcts.search(neutral_state, player)
-            #print(action_probs)
-            memory.append((neutral_state, action_probs, player))
+
+            if self.args["game"] == "Attaxx":
+                #print("\nSEARCHING...")
+                action_probs = self.mcts.search(state, player)
+                memory.append((state, action_probs, player))
+            else:
+                neutral_state = self.game.change_perspective(state, player)
+                action_probs = self.mcts.search(neutral_state, player)
+                memory.append((neutral_state, action_probs, player))
 
             temperature_action_probs = action_probs ** (1 / self.args['temperature'])
             temperature_action_probs /= np.sum(temperature_action_probs)
             action = np.random.choice(self.game.action_size, p=temperature_action_probs)
 
-            print(f"\nPlayer: {player}")
-            if action != self.game.action_size - 1:
-                print(f"Action: {action // self.game.row_count} {action % self.game.column_count}")
-            else:
-                print(f"Action: Skip")
+            if self.args["game"] == "Go":
+                print(f"\nPlayer: {player}")
+                if action != self.game.action_size - 1:
+                    print(f"Action: {action // self.game.row_count} {action % self.game.column_count}")
+                else:
+                    print(f"Action: Skip")
                 
             state = self.game.get_next_state(state, action, player)
 
-            self.game.print_board(state)
+            if self.args["game"] == "Attaxx":
+                #print(f"Player: {player} with move {self.game.int_to_move(action)}\nBoard:")
+                ...
+            
+            #self.game.print_board(state)
 
             value, is_terminal = self.game.get_value_and_terminated(state, action, player)
 
-            print(f"Evaluation: {value}")
+            if self.args["game"] == "Go":
+                print(f"Evaluation: {value}")
 
             if action == self.game.action_size - 1 and self.args['game'] == 'Go':
                 if prev_skip:
@@ -306,6 +319,7 @@ class AlphaZero:
                         returnMemory.append(
                             (self.game.get_encoded_state(augmented_state), hist_action_probs, hist_outcome)
                         )
+                #print("SELF PLAY OVER")
                 return returnMemory
 
             player = self.game.get_opponent(player)
