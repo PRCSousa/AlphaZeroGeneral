@@ -20,7 +20,7 @@ Só treinou 10 iteraçoes por falta de bateria, De alguma forma continua igualme
 
 Still dumb.
 
-## Modelo 4 | Attaxx5_10_10000_1000_500_1024
+## Modelo 4 | Attaxx5_10_1000_1000_500_500
 
 I hope my pc doesn't die.
 
