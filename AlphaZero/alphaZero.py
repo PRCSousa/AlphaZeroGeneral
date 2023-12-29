@@ -353,8 +353,8 @@ class AlphaZero:
             self.optimizer.step()
     
     def learn(self):
+        memory = []
         for iteration in range(self.args['num_iterations']):
-            memory = []
             
             print(f"Iteration {iteration + 1}")
             for selfPlay_iteration in trange(self.args['num_selfPlay_iterations']):
