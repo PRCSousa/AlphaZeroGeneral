@@ -4,7 +4,7 @@ class Attaxx:
     def __init__(self, args):
         self.column_count = args[0]
         self.row_count = args[1]
-        self.action_size = (self.column_count * self.row_count) ** 2
+        self.action_size = (self.column_count * self.row_count) ** 2 + 1
     
     def get_initial_state(self):
         state = np.zeros((self.column_count, self.row_count))
@@ -15,6 +15,8 @@ class Attaxx:
         return state
     
     def get_next_state(self, state, action, player):
+        if action == self.action_size - 1:
+            return state
         move = self.int_to_move(action)
         a, b, a1, b1 = move[0], move[1], move[2], move[3]
         if abs(a-a1)==2 or abs(b-b1)==2:
