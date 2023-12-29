@@ -309,32 +309,32 @@ class Go():
                     if empty >= self.column_count * self.row_count // 4: # if more than 1/4 of the board is empty, it is not the endgame
                         endgame = False
 
-        black, white = self.count_territory(state)
+        black, white = self.count_influenced_territory_enhanced(state)
                             
         return black - (white + self.komi), endgame
     
-    def count_territory(self, board):
-        black_territory = 0
-        white_territory = 0
-        visited = set()
+    # def count_territory(self, board):
+    #     black_territory = 0
+    #     white_territory = 0
+    #     visited = set()
 
-        def dfs(x, y, current_color):
-            if (x, y) in visited or not (0 <= x < len(board) and 0 <= y < len(board[0])):
-                return True
-            if board[x][y] == 0:
-                visited.add((x, y))
-                return all(dfs(x + dx, y + dy, current_color) for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)])
-            return board[x][y] == current_color
+    #     def dfs(x, y, current_color):
+    #         if (x, y) in visited or not (0 <= x < len(board) and 0 <= y < len(board[0])):
+    #             return True
+    #         if board[x][y] == 0:
+    #             visited.add((x, y))
+    #             return all(dfs(x + dx, y + dy, current_color) for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)])
+    #         return board[x][y] == current_color
 
-        for i in range(len(board)):
-            for j in range(len(board[0])):
-                if board[i][j] == 0 and (i, j) not in visited:
-                    if dfs(i, j, 1):
-                        black_territory += 1
-                    elif dfs(i, j, -1):
-                        white_territory += 1
+    #     for i in range(len(board)):
+    #         for j in range(len(board[0])):
+    #             if board[i][j] == 0 and (i, j) not in visited:
+    #                 if dfs(i, j, 1):
+    #                     black_territory += 1
+    #                 elif dfs(i, j, -1):
+    #                     white_territory += 1
 
-        return black_territory, white_territory
+    #     return black_territory, white_territory
     
     def count_influenced_territory_enhanced(self, board):
         black_territory = 0
@@ -413,10 +413,15 @@ class Go():
 #         action = game.row_count * game.column_count
 #     else:
 #         action = a * 9 + b
-#     if game.is_valid_move(state,action,player):
+#     if game.is_valid_move(state,(a,b),player):
 #         state = game.get_next_state(state, action, player)
 #     else:
 #         continue
+
+#     # b, w = game.count_territory(state)
+#     # print(f"Old | B:{b} W:{w}")
+#     b1, w1 = game.count_influenced_territory_enhanced(state)
+#     print(f"New | B:{b1} W:{w1}")
 
 #     winner, win = game.get_value_and_terminated(state, action, player)
 #     if win:

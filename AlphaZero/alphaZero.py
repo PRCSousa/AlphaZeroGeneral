@@ -301,9 +301,8 @@ class AlphaZero:
             if self.args["game"] == "Go":
                 self.game.print_board(state)
                 print(f"Evaluation: {value}")
-                b, w = self.game.count_territory(state)
-                print(f"Score: B:{b} W: {w}")
-                print(f"Player {player}")
+                b, w = self.game.count_influenced_territory_enhanced(state)
+                print(f"Influence: B:{b} W: {w}")
                 
 
             if action == self.game.action_size - 1 and self.args['game'] == 'Go':
