@@ -279,7 +279,16 @@ class Go():
                 else:
                     return -1, True
         else:
-            return 0, False
+            if player == self.BLACK:
+                if scoring > 0:
+                    return 1, False
+                else:
+                    return -1, False
+            else:
+                if scoring < 0:
+                    return 1, False
+                else:
+                    return -1, False
 
 
         
