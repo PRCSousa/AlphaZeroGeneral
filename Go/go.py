@@ -310,10 +310,6 @@ class Go():
                         endgame = False
 
         black, white = self.count_territory(state)
-                    
-
-        # print("Black: " + str(black))
-        # print("White: " + str(white))
                             
         return black - (white + self.komi), endgame
     

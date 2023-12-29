@@ -6,6 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import os
 from tqdm import trange
+import pickle
+
 
 class ResNet(nn.Module):
     '''
@@ -293,13 +295,16 @@ class AlphaZero:
             if self.args["game"] == "Attaxx":
                 #print(f"Player: {player} with move {self.game.int_to_move(action)}\nBoard:")
                 ...
-            
-            #self.game.print_board(state)
 
             value, is_terminal = self.game.get_value_and_terminated(state, action, player)
 
             if self.args["game"] == "Go":
+                self.game.print_board(state)
                 print(f"Evaluation: {value}")
+                b, w = self.game.count_territory(state)
+                print(f"Score: B:{b} W: {w}")
+                print(f"Player {player}")
+                
 
             if action == self.game.action_size - 1 and self.args['game'] == 'Go':
                 if prev_skip:
@@ -354,6 +359,12 @@ class AlphaZero:
             print(f"Iteration {iteration + 1}")
             for selfPlay_iteration in trange(self.args['num_selfPlay_iterations']):
                 memory += self.selfPlay()
+
+            file_name = f"train_data_{self.args['alias']}_{iteration}.pkl"
+
+            # Save the list to a file using pickle
+            with open(file_name, 'wb') as file:
+                pickle.dump(memory, file)
 
             print(f"Memory size: {len(memory)}")
             self.model.train()
