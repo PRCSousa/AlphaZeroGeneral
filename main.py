@@ -118,7 +118,7 @@ if __name__ == '__main__':
                     neut = game.change_perspective(state, player)
                     action = mcts.search(neut, player)
                     action = np.argmax(action)
-                    print(f"\nAlphaZero Action: {action}\n")
+                    print(f"\nAlphaZero Action: {action // game.row_count} {action % game.column_count}\n")
                     state = game.get_next_state(state, action, player)
 
                 winner, win = game.get_value_and_terminated(state, action, player)
