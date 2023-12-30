@@ -65,18 +65,19 @@ if __name__ == '__main__':
         optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
     elif GAME == 'Attaxx':
-        game_size = [5,5]
+        size = input("Game size: (4/5/6) ")
+        game_size = [size,size]
         args = {
             'game': 'Attaxx',
-            'num_iterations': 10,              # number of highest level iterations
-            'num_selfPlay_iterations': 1000,   # number of self-play games to play within each iteration
+            'num_iterations': 20,              # number of highest level iterations
+            'num_selfPlay_iterations': 500,   # number of self-play games to play within each iteration
             'num_mcts_searches': 500,         # number of mcts simulations when selecting a move within self-play
             'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
             'num_epochs': 500,                  # number of epochs for training on self-play data for each iteration
             'batch_size': 500,                # batch size for training
             'temperature': 1.25,              # temperature for the softmax selection of moves
             'C': 2,                           # the value of the constant policy
-            'augment': False,                 # whether to augment the training data with flipped states
+            'augment': True,                 # whether to augment the training data with flipped states
             'dirichlet_alpha': 0.3,           # the value of the dirichlet noise
             'dirichlet_epsilon': 0.125,       # the value of the dirichlet noise
             'alias': ('Attaxx' + SAVE_NAME)
