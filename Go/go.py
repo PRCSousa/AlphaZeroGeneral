@@ -313,29 +313,6 @@ class Go():
                             
         return black - (white + self.komi), endgame
     
-    # def count_territory(self, board):
-    #     black_territory = 0
-    #     white_territory = 0
-    #     visited = set()
-
-    #     def dfs(x, y, current_color):
-    #         if (x, y) in visited or not (0 <= x < len(board) and 0 <= y < len(board[0])):
-    #             return True
-    #         if board[x][y] == 0:
-    #             visited.add((x, y))
-    #             return all(dfs(x + dx, y + dy, current_color) for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)])
-    #         return board[x][y] == current_color
-
-    #     for i in range(len(board)):
-    #         for j in range(len(board[0])):
-    #             if board[i][j] == 0 and (i, j) not in visited:
-    #                 if dfs(i, j, 1):
-    #                     black_territory += 1
-    #                 elif dfs(i, j, -1):
-    #                     white_territory += 1
-
-    #     return black_territory, white_territory
-    
     def count_influenced_territory_enhanced(self, board):
         black_territory = 0
         white_territory = 0
@@ -347,13 +324,7 @@ class Go():
             for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                 nx, ny = x + dx, y + dy
                 if 0 <= nx < len(board) and 0 <= ny < len(board[0]):
-                    # Count dead stones as territory for the opponent
-                    if board[nx][ny] == 2:  # Dead black stone
-                        score -= 1
-                    elif board[nx][ny] == -2:  # Dead white stone
-                        score += 1
-                    else:
-                        score += board[nx][ny]
+                    score += board[nx][ny]
             return score
 
         # Function to explore territory
