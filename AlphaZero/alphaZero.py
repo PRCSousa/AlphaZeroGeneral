@@ -271,9 +271,10 @@ class AlphaZero:
         while True:
 
             if self.args["game"] == "Attaxx":
-                #print("\nSEARCHING...")
-                action_probs = self.mcts.search(state, player)
-                memory.append((state, action_probs, player))
+                print("\nSEARCHING...")
+                neutral_state = self.game.change_perspective(state, player)
+                action_probs = self.mcts.search(neutral_state, player)
+                memory.append((neutral_state, action_probs, player))
             else:
                 neutral_state = self.game.change_perspective(state, player)
                 action_probs = self.mcts.search(neutral_state, player)
@@ -293,8 +294,9 @@ class AlphaZero:
             state = self.game.get_next_state(state, action, player)
 
             if self.args["game"] == "Attaxx":
-                #print(f"Player: {player} with move {self.game.int_to_move(action)}\nBoard:")
-                ...
+                print(f"Player: {player} with move {self.game.int_to_move(action)}\nBoard:")
+                self.game.print_board(state)
+                
 
             value, is_terminal = self.game.get_value_and_terminated(state, action, player)
 
