@@ -22,5 +22,8 @@ Still dumb.
 
 ## Modelo 4 | Attaxx5_10_1000_1000_500_500
 
-I hope my pc doesn't die.
+implementation was saving memory wrong...
 
+## Modelo 5 | Attaxx5_10_1000_500_500_500
+
+We hope.
