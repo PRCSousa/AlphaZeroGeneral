@@ -306,7 +306,7 @@ class Go():
             for y in range(self.row_count):
                 if state[x][y] == self.EMPTY:
                     empty += 1
-                    if empty >= self.column_count * self.row_count // 4: # if more than 1/4 of the board is empty, it is not the endgame
+                    if empty >= self.column_count * self.row_count // 5: # if more than 1/4 of the board is empty, it is not the endgame
                         endgame = False
 
         black, white = self.count_influenced_territory_enhanced(state)
