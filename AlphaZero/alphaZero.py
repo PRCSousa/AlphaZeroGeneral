@@ -351,24 +351,30 @@ class AlphaZero:
             self.optimizer.step()
     
     def learn(self):
-        memory = []
+        primary_memory = []
+
         for iteration in range(self.args['num_iterations']):
-            
             print(f"Iteration {iteration + 1}")
+
             for selfPlay_iteration in trange(self.args['num_selfPlay_iterations']):
-                memory += self.selfPlay()
+                secondary_memory = self.selfPlay()
 
-            file_name = f"train_data_{self.args['alias']}_{iteration}.pkl"
+            training_memory = []
 
-            # Save the list to a file using pickle
-            with open(file_name, 'wb') as file:
-                pickle.dump(memory, file)
+            sample_size = int(len(primary_memory) * 0.3)
+            training_memory += random.sample(primary_memory, min(sample_size, len(primary_memory)))
 
-            print(f"Memory size: {len(memory)}")
+            training_memory += secondary_memory
+            primary_memory += secondary_memory
+
+            print(f"Memory size: {len(training_memory)}")
+
             self.model.train()
+
             for epoch in trange(self.args['num_epochs']):
-                self.train(memory)
+                self.train(training_memory)
+
             print("\n")
-            
+                
             torch.save(self.model.state_dict(), f"AlphaZero/Models/{self.args['alias']}/model_{iteration}.pt")
             torch.save(self.optimizer.state_dict(), f"AlphaZero/Models/{self.args['alias']}/optimizer_{iteration}.pt")
