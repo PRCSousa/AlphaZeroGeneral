@@ -322,7 +322,6 @@ class AlphaZero:
                         returnMemory.append(
                             (self.game.get_encoded_state(augmented_state), hist_action_probs, hist_outcome)
                         )
-                #print("SELF PLAY OVER")
                 return returnMemory
 
             player = self.game.get_opponent(player)
