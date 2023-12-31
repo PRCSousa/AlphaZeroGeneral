@@ -314,6 +314,8 @@ class AlphaZero:
 
             if is_terminal or iter >= self.args['max_moves']:
                 returnMemory = []
+                if self.args["game"] == "Attaxx" and debugging:
+                    print("GAME OVER\n\n")
                 for hist_neutral_state, hist_action_probs, hist_player in memory:
                     hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
                     augmented_states = self.augment_state(hist_neutral_state)

@@ -70,7 +70,7 @@ if __name__ == '__main__':
         game_size = [size,size]
         args = {
             'game': 'Attaxx',
-            'num_iterations': 50,             # number of highest level iterations
+            'num_iterations': 20,             # number of highest level iterations
             'num_selfPlay_iterations': 150,   # number of self-play games to play within each iteration
             'num_mcts_searches': 100,         # number of mcts simulations when selecting a move within self-play
             'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
