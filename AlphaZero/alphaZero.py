@@ -355,8 +355,17 @@ class AlphaZero:
         for iteration in range(self.args['num_iterations']):
             print(f"Iteration {iteration + 1}")
 
+            secondary_memory = []
+
             for selfPlay_iteration in trange(self.args['num_selfPlay_iterations']):
-                secondary_memory = self.selfPlay()
+                states = self.selfPlay()
+                secondary_memory += states
+
+                path = f"selfplay{selfPlay_iteration}.txt"
+
+                with open(path, 'w') as file:
+                    for state in secondary_memory:
+                        file.write(f"{state}\n\n")
 
             training_memory = []
 

@@ -2,6 +2,7 @@ import torch
 from torch.optim import Adam
 import random
 import numpy as np
+import math
 
 from Go.go import Go
 from Attaxx.attaxx import Attaxx
@@ -87,6 +88,24 @@ if __name__ == '__main__':
         model = ResNet(game, 20, 48, device)
         optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
+    def print_array_as_grid_corrected(array):
+
+        # Determine the size of the grid
+        grid_size = int(math.sqrt(len(array) - 1))
+
+        # Formatting each element to 4 decimal places
+        formatted_array = [f"{elem:.4f}" for elem in array]
+
+        # Printing the grid with improved alignment
+        print("  " + " ".join([f"{i:6}" for i in range(grid_size)]))  # Column headers
+        print("  +" + "-" * ((grid_size-1) * 8))
+
+        for i in range(grid_size):
+            row = formatted_array[i * grid_size:(i + 1) * grid_size]
+            print(f"{i}| " + " ".join(row))  # Row with row header
+
+        print(f"Skip Chance: {array[-1]}")
+
     if LOAD:
         model.load_state_dict(torch.load(f'AlphaZero/Models/{GAME+SAVE_NAME}/{MODEL}.pt', map_location=device))
         #model.load_state_dict(torch.load(f'AlphaZero/Models/{GAME+SAVE_NAME}/{MODEL}.pt', map_location=torch.device('cpu')))
@@ -111,15 +130,16 @@ if __name__ == '__main__':
             player = 1
 
             while True:
-                if player == 1:
+                if player == -1:
                     a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
                     print("\n")
                     action = a * 9 + b
                     state = game.get_next_state(state, action, player)
                 else:
-                    neut = game.change_perspective(state, player)
-                    action = mcts.search(neut, player)
+                    action = mcts.search(state, player)                    
+                    print_array_as_grid_corrected(action)
                     action = np.argmax(action)
+
                     print(f"\nAlphaZero Action: {action // game.row_count} {action % game.column_count}\n")
                     state = game.get_next_state(state, action, player)
 

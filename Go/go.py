@@ -256,7 +256,21 @@ class Go():
                     newstate[a][b] = 1
         
         newstate = newstate.reshape(-1)
-        newstate = np.concatenate([newstate, [1]])
+
+        empty = 0
+        endgame = True
+        
+        for x in range(self.column_count):
+            for y in range(self.row_count):
+                if state[x][y] == self.EMPTY:
+                    empty += 1
+                    if empty >= self.column_count * self.row_count // 4: # if more than 1/4 of the board is empty, it is not the endgame
+                        endgame = False
+                        break
+        if endgame:
+            newstate = np.concatenate([newstate, [1]])
+        else:
+            newstate = np.concatenate([newstate, [0]])
         return (newstate).astype(np.int8)
 
     def get_value_and_terminated(self, state, action, player):
@@ -306,8 +320,9 @@ class Go():
             for y in range(self.row_count):
                 if state[x][y] == self.EMPTY:
                     empty += 1
-                    if empty >= self.column_count * self.row_count // 5: # if more than 1/4 of the board is empty, it is not the endgame
+                    if empty >= self.column_count * self.row_count // 6: # if more than 1/4 of the board is empty, it is not the endgame
                         endgame = False
+                        break
 
         black, white = self.count_influenced_territory_enhanced(state)
                             
