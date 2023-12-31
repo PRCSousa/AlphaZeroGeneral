@@ -12,7 +12,7 @@ class Go():
     def __init__(self):
         self.row_count = 9
         self.column_count = 9
-        self.komi = 6.5
+        self.komi = 5.5
         self.action_size = self.row_count * self.column_count + 1
         self.liberties = []
         self.block = []
@@ -315,12 +315,12 @@ class Go():
         white = 0
         empty = 0
         endgame = True
-        # print("Scoring")
+
         for x in range(self.column_count):
             for y in range(self.row_count):
                 if state[x][y] == self.EMPTY:
                     empty += 1
-                    if empty >= self.column_count * self.row_count // 6: # if more than 1/4 of the board is empty, it is not the endgame
+                    if empty >= self.column_count * self.row_count // 6:
                         endgame = False
                         break
 
