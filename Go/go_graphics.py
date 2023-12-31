@@ -21,7 +21,7 @@ PIECE_SIZE = (SCREEN_SIZE - 2*SCREEN_PADDING) // SIZE_BOARD // 3
 
 screen=pygame.display.set_mode((SCREEN_SIZE,SCREEN_SIZE))
 
-pygame.display.set_caption("gO depression")
+pygame.display.set_caption("Go")
 
 def to_pixels(x):
     return SCREEN_PADDING + x*CELL_SIZE
@@ -64,7 +64,7 @@ def hover_to_select(player,valid_moves,click):
         if click:
             cur_pieces.append([x, y, player])
             valid_moves.remove([x, y])
-            return [x, y, -1*player]
+            return [x, y, -1*player] # might be an issue here
     return [None, None, player]
 
 click = False

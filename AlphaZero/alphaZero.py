@@ -363,12 +363,6 @@ class AlphaZero:
                 states = self.selfPlay()
                 secondary_memory += states
 
-                path = f"selfplay{selfPlay_iteration}.txt"
-
-                with open(path, 'w') as file:
-                    for state in secondary_memory:
-                        file.write(f"{state}\n\n")
-
             training_memory = []
 
             sample_size = int(len(primary_memory) * 0.3)
