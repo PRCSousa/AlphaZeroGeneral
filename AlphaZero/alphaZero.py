@@ -232,36 +232,49 @@ class AlphaZero:
         self.args = args
         self.mcts = MCTS(model, game, args)
 
-    def augment_state(self, state):
+    def augment_state(self, state, probs):
 
         augmented_states = []
-        
-        # Original state
-        augmented_states.append(state)
-        
+
+        skip_prob = probs[-1]
+        action_probs_matrix = np.array(probs[:-1]).reshape(self.game.column_count, self.game.row_count)
+        augmented_action_probs = []
+
+        def augment_and_append(transformed_state, transformed_probs_matrix):
+
+            # Append state
+            augmented_states.append(transformed_state)
+
+            # Flatten probs matrix, append the last value, and then append to augmented_action_probs
+            augmented_action_probs.append(list(transformed_probs_matrix.flatten()) + [skip_prob])
+
+        # Original state and probs
+        augment_and_append(state, action_probs_matrix)
+
         # Rotate 90 degrees clockwise
-        augmented_states.append(np.rot90(state, k=1))
-        
+        augment_and_append(np.rot90(state, k=1), np.rot90(action_probs_matrix, k=1))
+
         # Rotate 180 degrees clockwise
-        augmented_states.append(np.rot90(state, k=2))
-        
+        augment_and_append(np.rot90(state, k=2), np.rot90(action_probs_matrix, k=2))
+
         # Rotate 270 degrees clockwise
-        augmented_states.append(np.rot90(state, k=3))
-        
+        augment_and_append(np.rot90(state, k=3), np.rot90(action_probs_matrix, k=3))
+
         # Flip horizontally
-        augmented_states.append(np.fliplr(state))
-        
+        augment_and_append(np.fliplr(state), np.fliplr(action_probs_matrix))
+
         # Flip vertically
-        augmented_states.append(np.flipud(state))
-        
+        augment_and_append(np.flipud(state), np.flipud(action_probs_matrix))
+
         # Rotate 90 degrees clockwise and flip horizontally
-        augmented_states.append(np.rot90(np.fliplr(state), k=1))
-        
+        augment_and_append(np.rot90(np.fliplr(state), k=1), np.rot90(np.fliplr(action_probs_matrix), k=1))
+
         # Rotate 90 degrees clockwise and flip vertically
-        augmented_states.append(np.rot90(np.flipud(state), k=1))
-        
-        return augmented_states
-        
+        augment_and_append(np.rot90(np.flipud(state), k=1), np.rot90(np.flipud(action_probs_matrix), k=1))
+
+        return augmented_states, augmented_action_probs
+
+
     def selfPlay(self):
         memory = []
         player = 1
@@ -318,12 +331,9 @@ class AlphaZero:
                     print("GAME OVER\n\n")
                 for hist_neutral_state, hist_action_probs, hist_player in memory:
                     hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
-                    augmented_states = self.augment_state(hist_neutral_state)
 
-                    for augmented_state in augmented_states:
-                        returnMemory.append(
-                            (self.game.get_encoded_state(augmented_state), hist_action_probs, hist_outcome)
-                        )
+                    returnMemory.append((self.game.get_encoded_state(hist_outcome), hist_action_probs, hist_outcome))
+
                 return returnMemory
 
             player = self.game.get_opponent(player)
@@ -362,6 +372,12 @@ class AlphaZero:
             for selfPlay_iteration in trange(self.args['num_selfPlay_iterations']):
                 states = self.selfPlay()
                 secondary_memory += states
+
+                if selfPlay_iteration == 1:
+                    file_path = 'selfplay1'
+                    with open(file_path, 'w') as file:
+                        for item in secondary_memory:
+                            file.write(f"{item}\n")
 
             training_memory = []
 

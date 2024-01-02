@@ -12,7 +12,7 @@ class Go():
     def __init__(self):
         self.row_count = 9
         self.column_count = 9
-        self.komi = 5.5
+        self.komi = 1.5
         self.action_size = self.row_count * self.column_count + 1
         self.liberties = []
         self.block = []
