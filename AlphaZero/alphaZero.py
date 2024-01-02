@@ -370,7 +370,7 @@ class AlphaZero:
             training_memory = []
 
             sample_size = int(len(primary_memory) * 0.3)
-            #training_memory += random.sample(primary_memory, min(sample_size, len(primary_memory)))
+            training_memory += random.sample(primary_memory, min(sample_size, len(primary_memory)))
 
             training_memory += secondary_memory
             primary_memory += secondary_memory
