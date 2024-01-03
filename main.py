@@ -48,16 +48,16 @@ if __name__ == '__main__':
         args = {
             'game': 'Go',
             'num_iterations': 20,             # number of highest level iterations
-            'num_selfPlay_iterations': 10,   # number of self-play games to play within each iteration
-            'num_mcts_searches': 200,         # number of mcts simulations when selecting a move within self-play
+            'num_selfPlay_iterations': 20,   # number of self-play games to play within each iteration
+            'num_mcts_searches': 250,         # number of mcts simulations when selecting a move within self-play
             'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
             'num_epochs': 400,                  # number of epochs for training on self-play data for each iteration
-            'batch_size': 64,                # batch size for training
-            'temperature': 1.30,              # temperature for the softmax selection of moves
+            'batch_size': 128,                # batch size for training
+            'temperature': 1.50,              # temperature for the softmax selection of moves
             'C': 2,                           # the value of the constant policy
             'augment': True,                 # whether to augment the training data with flipped states
-            'dirichlet_alpha': 0.03,           # the value of the dirichlet noise (alpha)
-            'dirichlet_epsilon': 0.25,        # the value of the dirichlet noise (epsilon)
+            'dirichlet_alpha': 0.1,           # the value of the dirichlet noise (alpha)
+            'dirichlet_epsilon': 0.5,        # the value of the dirichlet noise (epsilon)
             'alias': ('Go' + SAVE_NAME)
         }
 
@@ -71,11 +71,11 @@ if __name__ == '__main__':
         args = {
             'game': 'Attaxx',
             'num_iterations': 200,             # number of highest level iterations
-            'num_selfPlay_iterations': 50,   # number of self-play games to play within each iteration
-            'num_mcts_searches': 50,         # number of mcts simulations when selecting a move within self-play
+            'num_selfPlay_iterations': 100,   # number of self-play games to play within each iteration
+            'num_mcts_searches': 150,         # number of mcts simulations when selecting a move within self-play
             'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
-            'num_epochs': 20,                 # number of epochs for training on self-play data for each iteration
-            'batch_size': 16,                 # batch size for training
+            'num_epochs': 200,                 # number of epochs for training on self-play data for each iteration
+            'batch_size': 64,                 # batch size for training
             'temperature': 1.25,              # temperature for the softmax selection of moves
             'C': 2,                           # the value of the constant policy
             'augment': False,                 # whether to augment the training data with flipped states
