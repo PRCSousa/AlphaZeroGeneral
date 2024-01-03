@@ -332,7 +332,7 @@ class AlphaZero:
                 for hist_neutral_state, hist_action_probs, hist_player in memory:
                     hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
 
-                    returnMemory.append((self.game.get_encoded_state(hist_outcome), hist_action_probs, hist_outcome))
+                    returnMemory.append((self.game.get_encoded_state(hist_neutral_state), hist_action_probs, hist_outcome))
 
                 return returnMemory
 
