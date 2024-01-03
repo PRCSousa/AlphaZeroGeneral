@@ -1,5 +1,4 @@
 import numpy as np
-
 class Go():
 
     EMPTY = 0
@@ -9,16 +8,23 @@ class Go():
     WHITEMARKER = 5
     LIBERTY = 8
 
-    def __init__(self):
-        self.row_count = 9
-        self.column_count = 9
-        self.komi = 1.5
+    def __init__(self, size, komi):
+        self.row_count = size
+        self.column_count = size
+        self.komi = 5.5
         self.action_size = self.row_count * self.column_count + 1
         self.liberties = []
         self.block = []
         self.seki_liberties = []
         
     def get_initial_state(self):
+        '''
+        # Description:
+        Returns a board of the argument size filled of zeros.
+
+        # Retuns:
+        Empty board full of zeros
+        '''
         board = np.zeros((self.row_count, self.column_count))
         return board
     
@@ -182,6 +188,13 @@ class Go():
         return check, state
     
     def set_stone(self, a, b, state, player):
+        '''
+        # Description:
+        Places the piece on the board. THIS DOES NOT account for the rules of the game, use get_next_state().
+
+        # Retuns:
+        Board with the piece placed.
+        '''
         state[a][b] = player
         return state
     
@@ -264,7 +277,7 @@ class Go():
             for y in range(self.row_count):
                 if state[x][y] == self.EMPTY:
                     empty += 1
-                    if empty >= self.column_count * self.row_count // 3: # if more than 1/4 of the board is empty, it is not the endgame
+                    if empty >= self.column_count * self.row_count // 4: # if more than 1/4 of the board is empty, it is not the endgame
                         endgame = False
                         break
         if endgame:
@@ -306,10 +319,15 @@ class Go():
 
 
         
-    def scoring(self, state):
+    def scoring(self, state: list) -> int:
         '''
         # Description:
-        Checks the score of the game.
+        Checks the score of the game. Score is calculated using:
+
+        black - (white + komi)
+
+        # Returns:
+        Integer with score.
         '''
         black = 0
         white = 0
@@ -320,7 +338,7 @@ class Go():
             for y in range(self.row_count):
                 if state[x][y] == self.EMPTY:
                     empty += 1
-                    if empty >= self.column_count * self.row_count // 4:
+                    if empty >= self.column_count * self.row_count // 6:
                         endgame = False
                         break
 
@@ -328,7 +346,19 @@ class Go():
                             
         return black - (white + self.komi), endgame
     
-    def count_influenced_territory_enhanced(self, board):
+    def count_influenced_territory_enhanced(self, board: list) -> tuple[int, int]:
+        '''
+        # Description 
+        Calculates the territory influenced by black and white players on the Go board.
+
+        This function iterates through the board, analyzing each empty point to determine 
+        if it's influenced by the surrounding black or white stones. The influence is calculated
+        based on the adjacent stones, with positive scores indicating black influence and negative
+        scores indicating white influence.
+
+        # Returns:
+        Tuple (black_territory, white_territory)
+        '''
         black_territory = 0
         white_territory = 0
         visited = set()
@@ -365,12 +395,32 @@ class Go():
 
 
     def get_opponent(self, player):
+        '''
+        # Description:
+        Changes Opponent
+        '''
         return -player
     
     def get_opponent_value(self, value):
+        '''
+        # Description
+        Returns the negative value of the value
+        '''
         return -value
     
     def get_encoded_state(self, state):
+        '''
+        # Description: 
+        Converts the current state of the Go board into a 3-layer encoded format suitable for neural network input.
+        Each layer in the encoded format represents the presence of a specific type of stone or an empty space on the board:
+        - Layer 1 encodes the positions of white stones (represented by -1 in the input state) as 1s, and all other positions as 0s.
+        - Layer 2 encodes the positions of empty spaces (represented by 0 in the input state) as 1s, and all other positions as 0s.
+        - Layer 3 encodes the positions of black stones (represented by 1 in the input state) as 1s, and all other positions as 0s.
+        This encoding helps in clearly distinguishing between different elements on the board for machine learning applications.
+
+        # Returns: 
+        A NumPy array of shape (3, height, width) containing the 3-layer encoded representation of the board state. Each layer is a 2D array where the board's height and width correspond to the dimensions of the original state.
+        '''
         layer_1 = np.where(np.array(state) == -1, 1, 0).astype(np.float32)
         layer_2 = np.where(np.array(state) == 0, 1, 0).astype(np.float32)
         layer_3 = np.where(np.array(state) == 1, 1, 0).astype(np.float32)
@@ -380,41 +430,11 @@ class Go():
         return result
     
     def change_perspective(self, state, player):
+        '''
+        # Description: 
+        Adjusts the perspective of the Go board state based on the current player.
+
+        # Returns: 
+        A two-dimensional array representing the Go board state adjusted for the current player's perspective.
+        '''
         return state * player
-    
-
-
-# Runtime
-    
-# game = Go()
-# state = game.get_initial_state()
-# game.print_board(state)
-
-# player = 1
-
-# while True:
-#     a, b = tuple(int(x.strip()) for x in input("\nInput your move: ").split(' '))
-#     print("\n")
-#     if a == -1 and b == -1:
-#         action = game.row_count * game.column_count
-#     else:
-#         action = a * 9 + b
-#     if game.is_valid_move(state,(a,b),player):
-#         state = game.get_next_state(state, action, player)
-#     else:
-#         continue
-
-#     # b, w = game.count_territory(state)
-#     # print(f"Old | B:{b} W:{w}")
-#     b1, w1 = game.count_influenced_territory_enhanced(state)
-#     print(f"New | B:{b1} W:{w1}")
-
-#     winner, win = game.get_value_and_terminated(state, action, player)
-#     if win:
-
-#         game.print_board(state)
-#         print(f"player {winner} wins")
-#         exit()
-
-#     player = - player
-#     game.print_board(state)
