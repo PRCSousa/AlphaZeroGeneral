@@ -70,9 +70,9 @@ if __name__ == '__main__':
         game_size = [size,size]
         args = {
             'game': 'Attaxx',
-            'num_iterations': 200,             # number of highest level iterations
-            'num_selfPlay_iterations': 100,   # number of self-play games to play within each iteration
-            'num_mcts_searches': 150,         # number of mcts simulations when selecting a move within self-play
+            'num_iterations': 200,            # number of highest level iterations
+            'num_selfPlay_iterations': 50,    # number of self-play games to play within each iteration
+            'num_mcts_searches': 50,          # number of mcts simulations when selecting a move within self-play
             'max_moves': 512,                 # maximum number of moves in a game (to avoid infinite games which should not happen but just in case)
             'num_epochs': 200,                 # number of epochs for training on self-play data for each iteration
             'batch_size': 64,                 # batch size for training
@@ -108,7 +108,6 @@ if __name__ == '__main__':
 
     if LOAD:
         model.load_state_dict(torch.load(f'AlphaZero/Models/{GAME+SAVE_NAME}/{MODEL}.pt', map_location=device))
-        #model.load_state_dict(torch.load(f'AlphaZero/Models/{GAME+SAVE_NAME}/{MODEL}.pt', map_location=torch.device('cpu')))
         optimizer.load_state_dict(torch.load(f'AlphaZero/Models/{GAME+SAVE_NAME}/{OPT}.pt', map_location=device))
 
     if not TEST:
