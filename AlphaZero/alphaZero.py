@@ -365,7 +365,7 @@ class AlphaZero:
         primary_memory = []
 
         for iteration in range(self.args['num_iterations']):
-            print(f"Iteration {iteration + 1}")
+            print(f"Iteration {iteration + 1 + 20}")
 
             secondary_memory = []
 
@@ -396,5 +396,5 @@ class AlphaZero:
 
             print("\n")
                 
-            torch.save(self.model.state_dict(), f"AlphaZero/Models/{self.args['alias']}/model_{iteration}.pt")
-            torch.save(self.optimizer.state_dict(), f"AlphaZero/Models/{self.args['alias']}/optimizer_{iteration}.pt")
+            torch.save(self.model.state_dict(), f"AlphaZero/Models/{self.args['alias']}/model_{iteration+20}.pt")
+            torch.save(self.optimizer.state_dict(), f"AlphaZero/Models/{self.args['alias']}/optimizer_{iteration+20}.pt")
