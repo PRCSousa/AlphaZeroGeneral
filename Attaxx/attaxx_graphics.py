@@ -4,7 +4,7 @@ data={'player1':(201,153,255),
       'player2':(179,236,255),
       }
 
-SIZE_BOARD = 9
+SIZE_BOARD = 6
 RED = (238, 167, 255)
 BLUE = (113, 175, 255)
 GRAY = (115, 115, 115)
@@ -15,7 +15,7 @@ pygame_icon = pygame.image.load('image.png')
 pygame.display.set_icon(pygame_icon)
 
 SCREEN_SIZE=600
-SCREEN_PADDING = 50
+SCREEN_PADDING = 100
 CELL_SIZE = (SCREEN_SIZE - SCREEN_PADDING) // SIZE_BOARD
 PIECE_SIZE = (SCREEN_SIZE - 2*SCREEN_PADDING) // SIZE_BOARD // 3
 
@@ -34,19 +34,20 @@ def to_coord(x):
     return closest
 
 def draw_board():
-    pygame.draw.rect(screen, GRAY, rect=(SCREEN_PADDING, SCREEN_PADDING, CELL_SIZE*(SIZE_BOARD-1), CELL_SIZE*(SIZE_BOARD-1)))
+    pygame.draw.rect(screen, GRAY, rect=(SCREEN_PADDING, SCREEN_PADDING, CELL_SIZE * (SIZE_BOARD - 1), CELL_SIZE * (SIZE_BOARD - 1)))
     for i in range(SIZE_BOARD + 1):
-
+        # Draw vertical lines
         pygame.draw.line(screen, BLACK,
-                         (to_pixels(i) - CELL_SIZE / 2, SCREEN_PADDING // 2 + - 5),
-                         (to_pixels(i) - CELL_SIZE / 2, CELL_SIZE*(SIZE_BOARD) + SCREEN_PADDING - CELL_SIZE / 2),
+                         (SCREEN_PADDING - (PIECE_SIZE*2) + i * CELL_SIZE, SCREEN_PADDING - PIECE_SIZE*2 ),
+                         (SCREEN_PADDING - PIECE_SIZE*2 + i * CELL_SIZE, SCREEN_PADDING + CELL_SIZE * (SIZE_BOARD) - PIECE_SIZE*2),
                          3)
 
-
+        # Draw horizontal lines
         pygame.draw.line(screen, BLACK,
-                         (SCREEN_PADDING // 2 - 7, to_pixels(i) - CELL_SIZE / 2),
-                         (CELL_SIZE*(SIZE_BOARD) + SCREEN_PADDING - CELL_SIZE / 2, to_pixels(i) - CELL_SIZE / 2),
+                         (SCREEN_PADDING - PIECE_SIZE*2, SCREEN_PADDING - PIECE_SIZE*2+ i * CELL_SIZE),
+                         (SCREEN_PADDING - PIECE_SIZE*2 + CELL_SIZE * (SIZE_BOARD), SCREEN_PADDING - PIECE_SIZE*2 + i * CELL_SIZE),
                          3)
+
 
 
 def draw_piece(x,y,player):
@@ -106,7 +107,13 @@ for i in range(SIZE_BOARD):
     for j in range(SIZE_BOARD):
         valid_moves.append([i, j])
 
-cur_pieces = [[0,0,1], [8,8,-1]]
+cur_pieces =[[0, 0, -1], [1, 0, 1], [2, 0, 1], [3, 0, 1], [4, 0, 1], [5, 0, 1],
+ [0, 1, -1], [1, 1, -1], [2, 1, 1], [3, 1, 1], [4, 1, 1], [5, 1, -1],
+ [0, 2, -1], [1, 2, -1], [2, 2, -1], [3, 2, -1], [4, 2, -1], [5, 2, -1],
+ [0, 3, -1], [1, 3, -1], [2, 3, -1], [3, 3, -1], [4, 3, -1], [5, 3, -1],
+ [0, 4, -1], [1, 4, -1], [2, 4, -1], [3, 4, -1], [4, 4, -1], [5, 4, -1],
+ [0, 5, -1], [1, 5, -1], [2, 5, -1], [3, 5, -1], [4, 5, -1], [5, 5, -1]]
+
 player = -1
 selected_piece = False
 last_click_time = 0
