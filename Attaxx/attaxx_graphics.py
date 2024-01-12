@@ -54,28 +54,51 @@ def draw_piece(x,y,player):
     pygame.draw.circle(screen,color,(to_pixels(x),to_pixels(y)),PIECE_SIZE)
     pygame.draw.circle(screen,BLACK,(to_pixels(x),to_pixels(y)),PIECE_SIZE,3)
 
-def hover_to_select(player,valid_moves,click):
+
+def hover_to_select(sel_x, sel_y, player, valid_moves, click, selected_piece, cur_pieces, last_click_time):
+
+    current_time = pygame.time.get_ticks()
     mouse_x, mouse_y = pygame.mouse.get_pos()
     x, y = None, None
-    if ([to_coord(mouse_x), to_coord(mouse_y)] in valid_moves):
+    if ([to_coord(mouse_x), to_coord(mouse_y), player] in cur_pieces):
         x, y = to_coord(mouse_x), to_coord(mouse_y)
+
+        if click and current_time - last_click_time > 100:  # 100 milliseconds debounce
+            if selected_piece:
+                if x == sel_x and y == sel_y: #deselection
+                    selected_piece = False
+                    sel_x = -1
+                    sel_y = -1
+                    print("cancel")
+                    
+            else: #selection
+                print("select")
+                selected_piece = True
+                sel_x = x
+                sel_y = y
+
+            last_click_time = current_time
     
-    if (x!=None):
-        pixels = (to_pixels(x),to_pixels(y))
-        distance = pygame.math.Vector2(pixels[0] - mouse_x, pixels[1] - mouse_y).length()
-        if distance < PIECE_SIZE:
+    if click and current_time - last_click_time > 100 and [to_coord(mouse_x), to_coord(mouse_y)] in valid_moves and selected_piece:
+        print("thing happen")
+        cur_pieces.append([to_coord(mouse_x), to_coord(mouse_y),player])
+        player = -player
+        selected_piece = False
+    
+    # Draw hollow circles on valid moves if a piece is selected
+    if selected_piece:
+        for move in valid_moves:
+            px, py = to_pixels(move[0]), to_pixels(move[1])
             s = pygame.Surface((SCREEN_SIZE, SCREEN_SIZE), pygame.SRCALPHA)
-            if player == 1:
-                pygame.draw.circle(s,(113, 175, 255,200),(to_pixels(x),to_pixels(y)),PIECE_SIZE)
-            if player == -1:
-                pygame.draw.circle(s,(238, 167, 240,200),(to_pixels(x),to_pixels(y)),PIECE_SIZE)
-            pygame.draw.circle(s,BLACK,(to_pixels(x),to_pixels(y)),PIECE_SIZE,3)
+            pygame.draw.circle(s, (113, 175, 255, 100) if player == 1 else (238, 167, 255, 100), (px, py), PIECE_SIZE, 3)  # Change color as needed
             screen.blit(s, (0, 0))
-        if click:
-            cur_pieces.append([x, y, player])
-            valid_moves.remove([x, y])
-            return [x, y, -1*player] # might be an issue here
-    return [None, None, player]
+
+
+    return [sel_x, sel_y, player, selected_piece, last_click_time]
+
+# Call the function with an additional 'selected_piece' parameter, initially None
+# selected_piece = hover_to_select(player, valid_moves, click, selected_piece, cur_pieces)
+
 
 click = False
 valid_moves = []
@@ -83,9 +106,11 @@ for i in range(SIZE_BOARD):
     for j in range(SIZE_BOARD):
         valid_moves.append([i, j])
 
-cur_pieces = []
-player = 1
-
+cur_pieces = [[0,0,1], [8,8,-1]]
+player = -1
+selected_piece = False
+last_click_time = 0
+x, y = -1, -1
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -101,6 +126,9 @@ while True:
     for piece in cur_pieces:
         draw_piece(piece[0], piece[1], piece[2])
 
-    x, y, player = hover_to_select(player, valid_moves, click)
-
+    x, y, player, selected_piece, last_click_time = hover_to_select(x, y, player, valid_moves, click, selected_piece, cur_pieces, last_click_time)
+    if x != -1 and y != -1:
+        # aqui vou buscar a lista de valid moves para [x,y]
+        # valid_moves = []
+        pass 
     pygame.display.flip()
