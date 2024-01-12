@@ -7,7 +7,7 @@ data={'player1':(201,153,255),
 SIZE_BOARD = 9
 BLACK = (0,0,0)
 WHITE = (255,255,255)
-GREEN = (140, 217, 166)
+GREEN = (188, 106, 66)
 
 
 pygame.init()
@@ -75,3 +75,22 @@ for i in range(SIZE_BOARD):
 
 cur_pieces = []
 player = 1
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            click = True
+        if event.type == pygame.MOUSEBUTTONUP:
+            click = False
+
+    screen.fill(GREEN)
+    draw_board()
+
+    for piece in cur_pieces:
+        draw_piece(piece[0], piece[1], piece[2])
+
+    x, y, player = hover_to_select(player, valid_moves, click)
+
+    pygame.display.flip()
